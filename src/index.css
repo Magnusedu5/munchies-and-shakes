@@ -1,0 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@500;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    /* Apply the deep purple background and set the text to white */
+    @apply bg-deep-900 text-white min-h-screen overflow-x-hidden antialiased;
+  }
+}
