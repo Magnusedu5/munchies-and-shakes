@@ -3,8 +3,10 @@ import { useFrame } from '@react-three/fiber';
 import Scene from './Scene';
 import FoodModel from './FoodModel';
 
-const API_BASE_URL = 'http://localhost:8000/api';
-const BACKEND_URL = 'http://localhost:8000';
+// Use the live backend URL if deployed, otherwise fallback to localhost for local development
+// Note: In Vite, environment variables must start with VITE_
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+const API_BASE_URL = `${BACKEND_URL}/api`;
 
 // Helper to ensure media URLs always point to the Django backend
 const getMediaUrl = (path) => {
