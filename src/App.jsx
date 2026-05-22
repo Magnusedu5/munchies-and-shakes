@@ -1,123 +1,287 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import Scene from './Scene';
 import FoodModel from './FoodModel';
 
-// Use the live backend URL if deployed, otherwise fallback to localhost for local development
-// Note: In Vite, environment variables must start with VITE_
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || `http://${window.location.hostname}:8000`;
 const API_BASE_URL = `${BACKEND_URL}/api`;
 
-// Helper to ensure media URLs always point to the Django backend
 const getMediaUrl = (path) => {
   if (!path) return null;
   if (path.startsWith('/')) return `${BACKEND_URL}${path}`;
   return path;
 };
 
-// A wrapper that rotates all of its children together on the Y axis
+const fmtPrice = (val) => {
+  const n = parseFloat(val);
+  return n % 1 === 0 ? n.toLocaleString('en-NG') : n.toLocaleString('en-NG', { minimumFractionDigits: 2 });
+};
+
 function RotatingGroup({ children }) {
-  const groupRef = useRef();
-  useFrame((state, delta) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y += delta * 0.3; // Adjust the speed of the group rotation here
-    }
-  });
-  return <group ref={groupRef}>{children}</group>;
+  const ref = useRef();
+  useFrame((_, delta) => { if (ref.current) ref.current.rotation.y += delta * 0.25; });
+  return <group ref={ref}>{children}</group>;
 }
 
-function App() {
-  const [flavorColor, setFlavorColor] = useState('#ffffff');
-  // State for order tracking
-  const [trackId, setTrackId] = useState('');
-  const [trackResult, setTrackResult] = useState(null);
-  const [trackError, setTrackError] = useState('');
+// ─── Theme tokens ─────────────────────────────────────────────────────────────
+const DARK = {
+  bg:          '#17120D',
+  bgCard:      '#1F1812',
+  bgElev:      '#271E15',
+  bgInput:     '#2D2018',
+  bgNav:       'rgba(23,18,13,0.97)',
+  navBorder:   'rgba(193,92,46,0.12)',
+  text:        '#EDE0C8',
+  textMuted:   '#8A7060',
+  textSubtle:  '#5A4A3A',
+  accent:      '#C15C2E',
+  accentHover: '#D46A38',
+  border:      'rgba(193,92,46,0.1)',
+  borderAcc:   'rgba(193,92,46,0.22)',
+  shadow:      '0 2px 20px rgba(0,0,0,0.25)',
+  shadowHover: '0 8px 40px rgba(0,0,0,0.4)',
+  tag:         'rgba(193,92,46,0.08)',
+  tagText:     '#EDE0C8',
+  divider:     'linear-gradient(to right, transparent, rgba(193,92,46,0.3), transparent)',
+  cartBg:      '#1A140F',
+};
 
-  // State to manage simple navigation between Home and Menu pages
-  const [currentView, setCurrentView] = useState('home');
+// ─── Shared micro-components ──────────────────────────────────────────────────
+function SectionLabel({ t, children }) {
+  return (
+    <p style={{ color: t.accent, fontFamily: "'DM Sans', sans-serif" }}
+       className="text-[11px] font-bold tracking-[0.2em] uppercase mb-3">
+      {children}
+    </p>
+  );
+}
 
-  // State to manage which Brand (Category) the user is currently viewing
+function PrimaryBtn({ t, onClick, type = 'button', disabled, children, full }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <button type={type} onClick={onClick} disabled={disabled}
+      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      className={`${full ? 'w-full' : ''} px-7 py-3.5 rounded-xl font-semibold text-[13px]
+                  tracking-wide transition-all active:scale-95
+                  disabled:opacity-40 disabled:cursor-not-allowed`}
+      style={{
+        background: hover ? t.accentHover : t.accent,
+        color: '#fff',
+        fontFamily: "'DM Sans', sans-serif",
+        boxShadow: hover ? `0 4px 20px rgba(193,92,46,0.35)` : 'none',
+        transform: hover ? 'translateY(-1px)' : 'translateY(0)',
+      }}>
+      {children}
+    </button>
+  );
+}
+
+function GhostBtn({ t, onClick, children, full }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <button onClick={onClick}
+      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      className={`${full ? 'w-full' : ''} px-7 py-3.5 rounded-xl font-semibold text-[13px]
+                  tracking-wide transition-all active:scale-95`}
+      style={{
+        border: `1.5px solid ${t.border}`,
+        color: t.text,
+        background: hover ? t.bgElev : 'transparent',
+        fontFamily: "'DM Sans', sans-serif",
+      }}>
+      {children}
+    </button>
+  );
+}
+
+function CloseBtn({ t, onClick }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <button onClick={onClick}
+      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      className="p-2 rounded-lg transition-colors"
+      style={{ color: t.textMuted, background: hover ? t.bgElev : 'transparent' }}>
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  );
+}
+
+function Tag({ t, children }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold"
+          style={{ background: t.tag, color: t.tagText, fontFamily: "'DM Sans', sans-serif" }}>
+      {children}
+    </span>
+  );
+}
+
+function Divider({ t }) {
+  return <div style={{ height: '1px', background: t.divider, margin: '0 0' }} />;
+}
+
+
+function Spinner({ t }) {
+  return (
+    <div className="flex flex-col items-center py-28 gap-4">
+      <div className="w-8 h-8 rounded-full border-[3px] animate-spin"
+           style={{ borderColor: `${t.border}`, borderTopColor: t.accent }} />
+      <p className="text-[12px] tracking-widest uppercase" style={{ color: t.textMuted,
+         fontFamily: "'DM Sans', sans-serif" }}>Loading…</p>
+    </div>
+  );
+}
+
+function CartIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
+        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+    </svg>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+export default function App() {
+  const t = DARK;
+
+  const [currentView,      setCurrentView]      = useState('home');
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedOptions,  setSelectedOptions]  = useState({});
 
-  // State to manage selected options for items with variants (e.g., 6pcs vs 12pcs)
-  const [selectedOptions, setSelectedOptions] = useState({});
-
-  const handleOptionChange = (itemId, optionId) => {
-    setSelectedOptions(prev => ({ ...prev, [itemId]: optionId }));
-  };
-
-  // Cart & Checkout State
   const [cartItems, setCartItems] = useState(() => {
-    const savedCart = localStorage.getItem('munchies_cart');
-    return savedCart ? JSON.parse(savedCart) : [];
+    try {
+      const items = JSON.parse(localStorage.getItem('munchies_cart')) || [];
+      // Migrate old items that used `id` as menu_item_id (CartManager era)
+      return items.map(i => ({
+        ...i,
+        menu_item_id:       i.menu_item_id ?? (typeof i.id === 'number' ? i.id : undefined),
+        selected_option_id: i.selected_option_id ?? null,
+      }));
+    }
+    catch { return []; }
   });
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCartOpen,     setIsCartOpen]     = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [checkoutData, setCheckoutData] = useState({ name: '', phone: '', address: '' });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState(null);
+  const [checkoutData,   setCheckoutData]   = useState({ name: '', phone: '', address: '' });
+  const [isSubmitting,   setIsSubmitting]   = useState(false);
+  const [orderSuccess,   setOrderSuccess]   = useState(null);
 
-  // Persist cart to localStorage whenever it changes
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAnimatingCart,  setIsAnimatingCart]  = useState(false);
+  const [toastMessage,     setToastMessage]     = useState(null);
+  const toastRef = useRef(null);
+  const videoRef  = useRef(null);
+
+  const [trackId,     setTrackId]     = useState('');
+  const [trackResult, setTrackResult] = useState(null);
+  const [trackError,  setTrackError]  = useState('');
+
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  );
+  const [categories,  setCategories]  = useState([]);
+  const [brandAssets, setBrandAssets] = useState({});
+  const [events,      setEvents]      = useState([]);
+  const [jobs,        setJobs]        = useState([]);
+
+  const popSound = useMemo(() => new Audio('/sounds/pop.mp3'), []);
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('munchies_cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
+  useEffect(() => {
+    const v = videoRef.current;
+    if (v) { v.muted = true; v.play().catch(() => {}); }
+  }, [brandAssets.background_video]);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/menu/`).then(r => r.json()).then(setCategories).catch(console.error);
+    Promise.all([
+      fetch(`${API_BASE_URL}/brand-assets/`),
+      fetch(`${API_BASE_URL}/events/`),
+      fetch(`${API_BASE_URL}/jobs/`),
+    ]).then(async ([a, e, j]) => {
+      setBrandAssets(await a.json());
+      setEvents(await e.json());
+      setJobs(await j.json());
+    }).catch(console.error);
+  }, []);
+
+  // ─── Helpers ──────────────────────────────────────────────────────────────
+  const navigate = (view, opts = {}) => {
+    setCurrentView(view);
+    if (opts.resetCategory) setSelectedCategory(null);
+    setIsMobileMenuOpen(false);
+    window.scrollTo(0, 0);
+  };
+
+  const handleOptionChange = (itemId, optionId) =>
+    setSelectedOptions(p => ({ ...p, [itemId]: optionId }));
+
   const addToCart = (item) => {
     setCartItems(prev => {
-      const existing = prev.find(i => i.id === item.id);
-      if (existing) {
-        return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
-      }
-      return [...prev, { ...item, quantity: 1 }];
+      const found = prev.find(i => i.id === item.id);
+      return found
+        ? prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i)
+        : [...prev, { ...item, quantity: 1 }];
     });
-    setIsCartOpen(true); // Open cart automatically when an item is added
+    setIsAnimatingCart(true);
+    setTimeout(() => setIsAnimatingCart(false), 400);
+    setToastMessage('Added to your order');
+    if (toastRef.current) clearTimeout(toastRef.current);
+    toastRef.current = setTimeout(() => setToastMessage(null), 2800);
+    popSound.currentTime = 0;
+    popSound.play().catch(() => {});
   };
 
-  const updateCartQuantity = (id, delta) => {
-    setCartItems(prev => prev.map(item => {
-      if (item.id === id) {
-        return { ...item, quantity: Math.max(0, item.quantity + delta) };
-      }
-      return item;
-    }).filter(item => item.quantity > 0));
-  };
+  const updateQty = (id, delta) =>
+    setCartItems(prev =>
+      prev.map(i => i.id === id ? { ...i, quantity: Math.max(0, i.quantity + delta) } : i)
+          .filter(i => i.quantity > 0)
+    );
 
-  const cartTotal = cartItems.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
-  const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const cartTotal     = cartItems.reduce((s, i) => s + parseFloat(i.price) * i.quantity, 0);
+  const cartItemCount = cartItems.reduce((s, i) => s + i.quantity, 0);
 
-  const handleCheckoutSubmit = async (e) => {
+  const handleCheckout = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    const orderPayload = {
-      customer_name: checkoutData.name,
-      phone_number: checkoutData.phone,
-      delivery_address: checkoutData.address,
-      total_amount: cartTotal.toFixed(2),
-      order_items: cartItems.map(item => ({
-        menu_item: item.menu_item_id,
-        selected_option: item.selected_option_id,
-        quantity: item.quantity,
-        price_at_purchase: item.price
-      }))
-    };
-
     try {
-      const response = await fetch(`${API_BASE_URL}/order/create/`, {
+      const res = await fetch(`${API_BASE_URL}/order/create/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderPayload)
+        body: JSON.stringify({
+          customer_name:    checkoutData.name,
+          phone_number:     checkoutData.phone,
+          delivery_address: checkoutData.address,
+          total_amount:     cartTotal.toFixed(2),
+          order_items:      cartItems.map(i => ({
+            menu_item:         i.menu_item_id ?? i.id,
+            selected_option:   i.selected_option_id ?? null,
+            quantity:          i.quantity,
+            price_at_purchase: i.price,
+          })),
+        }),
       });
-      
-      if (!response.ok) throw new Error('Checkout failed.');
-      
-      const data = await response.json();
-      setOrderSuccess(data);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(JSON.stringify(errData));
+      }
+      setOrderSuccess(await res.json());
       setCartItems([]);
       setCheckoutData({ name: '', phone: '', address: '' });
     } catch (err) {
-      console.error(err);
-      alert('There was an issue placing your order. Please try again.');
+      console.error('Order failed:', err.message);
+      alert('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -126,374 +290,634 @@ function App() {
   const handleTrackOrder = async (e) => {
     e.preventDefault();
     if (!trackId) return;
-    setTrackError('');
-    setTrackResult(null);
+    setTrackError(''); setTrackResult(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/track/${trackId}/`);
-      if (!response.ok) throw new Error('Order not found. Please check your Order ID.');
-      const data = await response.json();
-      setTrackResult(data);
-    } catch (err) {
-      setTrackError(err.message);
-    }
+      const res = await fetch(`${API_BASE_URL}/track/${trackId}/`);
+      if (!res.ok) throw new Error('Order not found. Please check your Order ID.');
+      setTrackResult(await res.json());
+    } catch (err) { setTrackError(err.message); }
   };
 
-  // Map the backend status to progress bar steps
-  const statuses = ['Pending', 'Processing', 'Out for Delivery', 'Delivered'];
+  const statuses   = ['Pending', 'Processing', 'Out for Delivery', 'Delivered'];
+  const stepLabels = ['Received', 'Preparing', 'On the Way', 'Delivered'];
 
-  // Features data for the grid
-  const features = [
-    { title: 'Fast Delivery', description: 'Hot and fresh to your door in under 30 minutes.', icon: '🚀' },
-    { title: 'Premium Ingredients', description: '100% organic, locally sourced produce and meats.', icon: '🥑' },
-    { title: 'Exclusive Shakes', description: 'Handcrafted flavor combinations you won’t find anywhere else.', icon: '🥤' },
+  const navLinks = [
+    { label: 'Home',    view: 'home',    extra: {} },
+    { label: 'Menu',    view: 'menu',    extra: { resetCategory: true } },
+    { label: 'Events',  view: 'events',  extra: {} },
+    { label: 'Careers', view: 'careers', extra: {} },
   ];
 
-  // State for dynamically fetched categories
-  const [categories, setCategories] = useState([]);
-  const [brandAssets, setBrandAssets] = useState({});
-  const [events, setEvents] = useState([]);
-  const [jobs, setJobs] = useState([]);
+  const inputStyle = {
+    background: t.bgInput,
+    color: t.text,
+    border: `1.5px solid ${t.border}`,
+    fontFamily: "'DM Sans', sans-serif",
+    fontSize: '14px',
+    outline: 'none',
+    transition: 'border-color 0.2s',
+    borderRadius: '10px',
+    padding: '12px 16px',
+    width: '100%',
+  };
 
-  useEffect(() => {
-    const fetchMenu = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/menu/`);
-        const data = await response.json();
-        setCategories(data);
-      } catch (error) {
-        console.error('Failed to fetch menu:', error);
-      }
-    };
-    const fetchBrandData = async () => {
-      try {
-        const [assetsRes, eventsRes, jobsRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/brand-assets/`),
-          fetch(`${API_BASE_URL}/events/`),
-          fetch(`${API_BASE_URL}/jobs/`)
-        ]);
-        setBrandAssets(await assetsRes.json());
-        setEvents(await eventsRes.json());
-        setJobs(await jobsRes.json());
-      } catch (error) {
-        console.error('Failed to fetch brand data:', error);
-      }
-    };
-    fetchMenu();
-    fetchBrandData();
-  }, []);
-
+  // ══════════════════════════════════════════════════════════════════════════
   return (
-    <div className="min-h-screen bg-[#0d0d0d] font-['Inter'] text-white selection:bg-[#ff2d55] selection:text-white relative pb-24 scroll-smooth">
-      
-      {/* 1. Glassmorphism Navigation Bar */}
-      <div className="fixed top-4 left-4 right-4 md:left-10 md:right-10 z-50">
-        <nav className="grid grid-cols-2 md:grid-cols-3 items-center bg-[#2D1611]/95 backdrop-blur-md border border-[#3D1D16] px-6 py-3 md:py-4 rounded-2xl shadow-2xl">
-          
-          {/* Left: Navigation Links */}
-          <div className="hidden md:flex space-x-6 lg:space-x-8 font-medium text-sm text-[#FFFDD0]">
-            <a href="#" onClick={(e) => { e.preventDefault(); setCurrentView('home'); window.scrollTo(0,0); }} className="hover:text-[#ff2d55] transition-colors">Home</a>
-            <a href="#" onClick={(e) => { e.preventDefault(); setCurrentView('menu'); setSelectedCategory(null); window.scrollTo(0,0); }} className="hover:text-[#ff2d55] transition-colors">Menu</a>
-            <a href="#" onClick={(e) => { e.preventDefault(); setCurrentView('events'); window.scrollTo(0,0); }} className="hover:text-[#ff2d55] transition-colors">Events</a>
-            <a href="#" onClick={(e) => { e.preventDefault(); setCurrentView('careers'); window.scrollTo(0,0); }} className="hover:text-[#ff2d55] transition-colors">Careers</a>
-          </div>
+    <div style={{ background: t.bg, color: t.text, fontFamily: "'DM Sans', sans-serif",
+                  minHeight: '100vh', transition: 'background 0.3s, color 0.3s' }}>
 
-          {/* Center: Logo */}
-          <div className="flex md:justify-center">
-            <a href="#" onClick={(e) => { e.preventDefault(); setCurrentView('home'); window.scrollTo(0,0); }} className="flex items-center justify-center h-12 md:h-16 w-48 md:w-64">
-              {brandAssets.header_image && (
-                <img src={getMediaUrl(brandAssets.header_image)} alt="Munchies and Shakes" className="w-full h-full object-contain object-center scale-[3.2] drop-shadow-xl" />
-              )}
-            </a>
-          </div>
+      {/* ── NAV ──────────────────────────────────────────────────────────── */}
+      <div className="fixed top-0 left-0 right-0 z-50"
+           style={{ background: t.bgNav, borderBottom: `1px solid ${t.navBorder}`,
+                    backdropFilter: 'blur(16px)' }}>
+        <div className="container mx-auto px-6">
+          <nav className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[1fr_auto_1fr] items-center h-[62px]">
 
-          {/* Right: Actions & 3D Element */}
-          <div className="flex justify-end items-center gap-4 lg:gap-6">
-            <button onClick={() => setIsCartOpen(true)} className="relative p-2 text-[#FFFDD0] hover:text-[#ff2d55] transition-colors group" aria-label="Cart">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-              {cartItemCount > 0 && (
-                <span className="absolute top-0 right-0 bg-[#ff2d55] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center translate-x-1 -translate-y-1 group-hover:scale-110 transition-transform shadow-md">
-                  {cartItemCount}
-                </span>
-              )}
-            </button>
-            <button className="p-2 text-[#FFFDD0] hover:text-[#ff2d55] transition-colors" aria-label="User Profile">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-            </button>
-            <button className="hidden md:block px-5 py-2.5 bg-[#ff2d55] text-white text-sm font-bold rounded-2xl hover:bg-[#e0264b] transition-colors shadow-[0_4px_15px_rgba(255,45,85,0.4)]">
-              Login
-            </button>
-          </div>
-        </nav>
-      </div>
-
-      {/* ---- HOME PAGE VIEW ---- */}
-      {currentView === 'home' && (
-        <>
-          {/* Background Video */}
-          {brandAssets.background_video && (
-            <div className="fixed top-0 left-0 w-full h-screen z-0 overflow-hidden pointer-events-none">
-              <video src={getMediaUrl(brandAssets.background_video)} autoPlay loop muted playsInline className="w-full h-full object-cover opacity-30" />
-              {/* Heavy dark overlay to push the video to the background and ensure page items are highly visible */}
-              <div className="absolute inset-0 bg-[#0d0d0d]/80"></div>
-              {/* Smooth fade-out gradient at the bottom edge */}
-              <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#0d0d0d] to-transparent"></div>
+            {/* Left — hamburger / links */}
+            <div className="md:hidden">
+              <button onClick={() => setIsMobileMenuOpen(v => !v)}
+                className="p-2 -ml-1 rounded-lg transition-colors"
+                style={{ color: t.textMuted }}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {isMobileMenuOpen
+                    ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6 18L18 6M6 6l12 12"/>
+                    : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 7h16M4 12h16M4 17h16"/>
+                  }
+                </svg>
+              </button>
             </div>
-          )}
+            <div className="hidden md:flex items-center gap-1">
+              {navLinks.map(l => (
+                <button key={l.view} onClick={() => navigate(l.view, l.extra)}
+                  className="px-4 py-2 rounded-lg text-[13px] font-medium transition-all"
+                  style={{
+                    color: currentView === l.view ? t.text : t.textMuted,
+                    background: currentView === l.view ? t.bgElev : 'transparent',
+                    fontFamily: "'DM Sans', sans-serif",
+                  }}>
+                  {l.label}
+                </button>
+              ))}
+            </div>
 
-          {/* 2. Split Hero Section */}
-          <section className="relative z-10 container mx-auto px-6 pt-36 pb-16 md:pt-48 md:pb-24 flex flex-col md:flex-row items-center gap-12">
-            
-            {/* Left Side: Text */}
-            <div className="flex-1 space-y-8 text-center md:text-left z-10">
-              <h1 className="text-4xl md:text-5xl font-['Poppins'] font-black leading-tight tracking-tight">
-                Your Cravings, <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff2d55] to-purple-500">
-                  Delivered.
-                </span>
-              </h1>
-              <p className="text-sm md:text-base text-gray-400 max-w-lg mx-auto md:mx-0 font-light leading-relaxed">
-                The ultimate comfort food experience. Smash burgers, crispy fries, and thick shakes engineered to blow your mind.
-              </p>
-              <button onClick={() => { setCurrentView('menu'); setSelectedCategory(null); window.scrollTo(0,0); }} className="px-8 py-4 bg-[#ff2d55] text-white font-bold text-base rounded-3xl shadow-[0_8px_30px_rgba(255,45,85,0.4)] hover:shadow-[0_8px_40px_rgba(255,45,85,0.6)] hover:-translate-y-1 transition-all transform w-full md:w-auto">
-                Start Ordering
+            {/* Center — Logo */}
+            <div className="flex justify-center">
+              <button onClick={() => navigate('home')}
+                className="flex items-center justify-center h-10 w-40 md:h-12 md:w-52">
+                {brandAssets.header_image
+                  ? <img src={getMediaUrl(brandAssets.header_image)} alt="Munchies and Shakes"
+                         className="w-full h-full object-contain" />
+                  : <span style={{ fontFamily: "'Fraunces', serif", fontWeight: 700,
+                                   fontSize: '18px', color: t.text, letterSpacing: '0.01em' }}>
+                      Munchies<span style={{ color: t.accent }}> &amp; </span>Shakes
+                    </span>
+                }
               </button>
             </div>
 
-            {/* Right Side: 3D Floating Food */}
-            <div className="flex-1 w-full relative h-[500px] md:h-[700px]">
-              <div className="absolute inset-0 bg-[#ff2d55]/20 blur-[100px] rounded-full z-0 pointer-events-none"></div>
-              <div className="absolute inset-0 z-10">
+            {/* Right — actions */}
+            <div className="flex items-center justify-end gap-2">
+              {/* Cart */}
+              <button onClick={() => setIsCartOpen(true)}
+                className={`relative p-2.5 rounded-lg transition-all duration-300 ${isAnimatingCart ? 'scale-125' : ''}`}
+                style={{ color: isAnimatingCart ? t.accent : t.textMuted }}>
+                <CartIcon />
+                {cartItemCount > 0 && (
+                  <span className={`absolute -top-0.5 -right-0.5 text-[9px] font-bold w-4 h-4
+                                    rounded-full flex items-center justify-center shadow
+                                    ${isAnimatingCart ? 'animate-bounce' : ''}`}
+                        style={{ background: t.accent, color: '#fff', fontFamily: "'DM Sans', sans-serif" }}>
+                    {cartItemCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Order CTA */}
+              <button onClick={() => navigate('menu', { resetCategory: true })}
+                className="hidden md:block px-5 py-2.5 rounded-xl text-[12px] font-bold
+                           tracking-wide transition-all"
+                style={{ background: t.accent, color: '#fff', fontFamily: "'DM Sans', sans-serif" }}
+                onMouseEnter={e => { e.currentTarget.style.background = t.accentHover; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = t.accent; e.currentTarget.style.transform = 'none'; }}>
+                Order Now
+              </button>
+            </div>
+          </nav>
+        </div>
+
+        {/* Mobile dropdown */}
+        {isMobileMenuOpen && (
+          <div style={{ borderTop: `1px solid ${t.border}`, background: t.bgNav }}
+               className="animate-fade-up">
+            <div className="container mx-auto px-6 py-3 flex flex-col gap-1">
+              {navLinks.map(l => (
+                <button key={l.view} onClick={() => navigate(l.view, l.extra)}
+                  className="text-left px-4 py-3.5 rounded-xl text-[14px] font-medium transition-colors"
+                  style={{ color: currentView === l.view ? t.accent : t.textMuted,
+                           background: currentView === l.view ? t.bgElev : 'transparent',
+                           fontFamily: "'DM Sans', sans-serif" }}>
+                  {l.label}
+                </button>
+              ))}
+              <div className="pt-2 pb-1">
+                <PrimaryBtn t={t} onClick={() => navigate('menu', { resetCategory: true })} full>
+                  Order Now
+                </PrimaryBtn>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          HOME
+      ══════════════════════════════════════════════════════════════════════ */}
+      {currentView === 'home' && (
+        <>
+          {/* Background video */}
+          {brandAssets.background_video && (
+            <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+              <video ref={videoRef} src={getMediaUrl(brandAssets.background_video)}
+                     autoPlay loop muted playsInline
+                     className="w-full h-full object-cover"
+                     style={{ opacity: 0.12 }} />
+              <div className="absolute inset-0"
+                   style={{ background: `${t.bg}cc` }} />
+            </div>
+          )}
+
+          {/* ── Hero ───────────────────────────────────────────────────── */}
+          <section className="relative z-10 min-h-[100svh] container mx-auto px-4 sm:px-6
+                              flex flex-col md:flex-row items-center
+                              pt-20 pb-12 md:pt-0 gap-8 md:gap-8">
+            {/* Copy */}
+            <div className="flex-1 w-full space-y-5 text-center md:text-left animate-fade-up">
+              <SectionLabel t={t}>Calabar's Finest · Est. 2023</SectionLabel>
+
+              <h1 style={{ fontFamily: "'Fraunces', serif", color: t.text,
+                           fontSize: 'clamp(2rem, 8vw, 4.5rem)',
+                           fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.01em' }}>
+                Good Food,{' '}
+                <em style={{ fontStyle: 'italic', color: t.accent }}>Honestly</em>
+                <br />Made.
+              </h1>
+
+              <p style={{ color: t.textMuted, fontSize: '15px', lineHeight: 1.85,
+                          maxWidth: '390px', margin: '0 auto' }}
+                 className="md:mx-0">
+                Smash burgers crafted from locally-sourced ingredients, loaded fries,
+                and thick shakes blended fresh every single day. No shortcuts, ever.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+                <PrimaryBtn t={t} onClick={() => navigate('menu', { resetCategory: true })}>
+                  Explore the Menu
+                </PrimaryBtn>
+                <GhostBtn t={t} onClick={() => document.getElementById('track')
+                    ?.scrollIntoView({ behavior: 'smooth' })}>
+                  Track My Order
+                </GhostBtn>
+              </div>
+
+              {/* Attribute tags */}
+              <div className="flex flex-wrap gap-2 justify-center md:justify-start pt-1">
+                <Tag t={t}>🌿 Fresh Daily</Tag>
+                <Tag t={t}>🔥 Made to Order</Tag>
+                <Tag t={t}>⚡ 30-Min Delivery</Tag>
+              </div>
+
+              {/* Stats */}
+              <div className="flex items-center gap-8 justify-center md:justify-start pt-3">
+                {[['500+', 'Daily orders'], ['4.9★', 'Rating'], ['< 30 min', 'Delivery']].map(
+                  ([val, lbl], i) => (
+                    <div key={lbl} className="flex items-center gap-8">
+                      <div>
+                        <div style={{ fontFamily: "'Fraunces', serif", fontSize: '24px',
+                                      fontWeight: 700, color: t.text }}>
+                          {val}
+                        </div>
+                        <div style={{ fontSize: '11px', color: t.textMuted, marginTop: '2px' }}>
+                          {lbl}
+                        </div>
+                      </div>
+                      {i < 2 && (
+                        <div style={{ width: '1px', height: '32px', background: t.border }} />
+                      )}
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+
+            {/* 3D model */}
+            <div className="flex-1 w-full relative h-[260px] sm:h-[380px] md:h-[660px]">
+              <div className="absolute inset-0 pointer-events-none"
+                   style={{ background: `radial-gradient(ellipse at center, rgba(193,92,46,0.12) 0%, transparent 65%)`,
+                            filter: 'blur(30px)' }} />
+              <div className="absolute inset-0">
                 <Scene>
                   <RotatingGroup>
-                    <FoodModel 
-                      url="/models/scene_modern.glb" 
-                      scale={3}
-                    />
+                    <FoodModel url="/models/scene_modern.glb"
+                               scale={isMobile ? 1.2 : 3}
+                               position={isMobile ? [0, -0.4, 0] : [0, 0, 0]} />
                   </RotatingGroup>
                 </Scene>
               </div>
             </div>
-
           </section>
 
-          {/* 3. Order Tracking Section */}
-          <section className="relative z-10 container mx-auto px-6 py-12">
-            <div className="max-w-2xl mx-auto bg-[#1a1a1a] rounded-3xl p-8 border border-white/5 shadow-2xl">
-              <h2 className="text-xl font-['Poppins'] font-bold mb-6 text-center">Track Your Order</h2>
-              <form onSubmit={handleTrackOrder} className="flex flex-col sm:flex-row gap-4 mb-6">
-                <input
-                  type="text"
-                  placeholder="Enter Order ID"
-                  value={trackId}
-                  onChange={(e) => setTrackId(e.target.value)}
-                  className="flex-1 bg-[#242424] text-white text-sm px-5 py-3 rounded-full outline-none border border-gray-700 focus:border-[#ff2d55] transition-colors"
-                />
-                <button type="submit" className="px-6 py-3 bg-[#ff2d55] text-white text-sm font-bold rounded-full shadow-[0_4px_15px_rgba(255,45,85,0.4)] hover:bg-[#e0264b] transition-colors">
-                  Track
-                </button>
-              </form>
-              
-              {trackError && <p className="text-red-500 text-center text-sm font-medium">{trackError}</p>}
-              
-              {trackResult && trackResult.status !== 'Cancelled' && (
-                <div className="mt-8 animate-fade-in">
-                  <h3 className="text-base font-['Poppins'] font-bold mb-4">Order #{trackResult.id} for {trackResult.customer_name}</h3>
-                  <div className="relative pt-4">
-                    <div className="overflow-hidden h-3 mb-4 text-xs flex rounded-full bg-gray-700">
-                      <div style={{ width: `${(statuses.indexOf(trackResult.status) + 1) * 25}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#ff2d55] transition-all duration-700 ease-out"></div>
-                    </div>
-                    <div className="flex justify-between text-[10px] sm:text-xs text-gray-500 font-semibold mt-2">
-                      <span className={statuses.indexOf(trackResult.status) >= 0 ? "text-[#ff2d55]" : ""}>Received</span>
-                      <span className={statuses.indexOf(trackResult.status) >= 1 ? "text-[#ff2d55]" : ""}>Preparing</span>
-                      <span className={statuses.indexOf(trackResult.status) >= 2 ? "text-[#ff2d55]" : ""}>On the Way</span>
-                      <span className={statuses.indexOf(trackResult.status) >= 3 ? "text-[#ff2d55]" : ""}>Delivered</span>
-                    </div>
+          <div className="relative z-10 container mx-auto px-6"><Divider t={t} /></div>
+
+          {/* ── Features ───────────────────────────────────────────────── */}
+          <section className="relative z-10 container mx-auto px-6 py-20">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { num: '01', title: 'Swift Delivery',      body: 'Hot and fresh to your door in under 30 minutes, guaranteed, every time.' },
+                { num: '02', title: 'Premium Ingredients', body: 'Only the freshest, locally sourced produce and meats in every single bite.' },
+                { num: '03', title: 'Exclusive Shakes',    body: 'Handcrafted flavour combinations you will not find anywhere else in Calabar.' },
+              ].map(f => (
+                <div key={f.num} className="p-8 rounded-2xl transition-all duration-300"
+                     style={{ background: t.bgCard, border: `1px solid ${t.border}`,
+                              boxShadow: t.shadow }}>
+                  <div style={{ fontFamily: "'Fraunces', serif", fontSize: '13px',
+                                color: t.accent, marginBottom: '12px', fontWeight: 700 }}>
+                    {f.num}
                   </div>
-                </div>
-              )}
-
-              {trackResult && trackResult.status === 'Cancelled' && (
-                <div className="mt-8 text-center text-red-500 font-bold text-base animate-fade-in">
-                  This order has been cancelled.
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* 4. Features Grid */}
-          <section className="relative z-10 container mx-auto px-6 py-16">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {features.map((feature, idx) => (
-                <div key={idx} className="bg-[#1a1a1a] p-10 rounded-3xl border border-white/5 hover:border-[#ff2d55]/50 transition-colors shadow-xl">
-                  <div className="text-3xl mb-4">{feature.icon}</div>
-                  <h3 className="text-lg font-['Poppins'] font-bold mb-2">{feature.title}</h3>
-                  <p className="text-gray-400 text-sm leading-relaxed">{feature.description}</p>
+                  <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: '20px', fontWeight: 700,
+                               color: t.text, marginBottom: '10px' }}>
+                    {f.title}
+                  </h3>
+                  <p style={{ fontSize: '14px', color: t.textMuted, lineHeight: 1.8 }}>{f.body}</p>
                 </div>
               ))}
             </div>
           </section>
 
-          {/* 5. Our Story Section */}
-          <section id="about" className="relative z-10 container mx-auto px-6 py-16 text-center max-w-4xl">
-            <h2 className="text-2xl md:text-3xl font-['Poppins'] font-bold mb-6 text-[#ff2d55]">Our Story</h2>
-            <p className="text-sm md:text-base text-gray-400 leading-relaxed mb-6">
-              Born out of a late-night craving for something out of this world, Munchies and Shakes was created to redefine comfort food. We believe in using only the freshest ingredients, smashing our burgers to perfection, and blending shakes that take you to another galaxy.
-            </p>
-          </section>
+          {/* ── Order Tracking ─────────────────────────────────────────── */}
+          <section id="track" className="relative z-10 container mx-auto px-6 pb-20">
+            <div className="max-w-2xl mx-auto">
+              <div className="text-center mb-8">
+                <SectionLabel t={t}>Real-time Status</SectionLabel>
+                <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '2rem',
+                             fontWeight: 700, color: t.text }}>
+                  Track Your Order
+                </h2>
+              </div>
 
-          {/* 6. Contact Section */}
-          <section id="contact" className="relative z-10 container mx-auto px-6 py-16 mb-12 text-center">
-            <div className="bg-[#1a1a1a] rounded-3xl p-10 md:p-16 max-w-4xl mx-auto border border-white/5 shadow-2xl">
-              <h2 className="text-2xl md:text-3xl font-['Poppins'] font-bold mb-6">Hit Us Up</h2>
-              <p className="text-sm text-gray-400 mb-12">Got a question or just want to say hi? We'd love to hear from you.</p>
-              <div className="flex flex-col md:flex-row justify-center items-center gap-12 text-left">
-                <div className="flex-1">
-                  <h4 className="text-[#ff2d55] font-bold text-base mb-2">Location</h4>
-                  <p className="text-gray-300 text-sm">123 Galactic Way<br/>Calabar, Nigeria</p>
-                </div>
-                <div className="w-px h-16 bg-gray-800 hidden md:block"></div>
-                <div className="flex-1">
-                  <h4 className="text-[#ff2d55] font-bold text-base mb-2">Hours</h4>
-                  <p className="text-gray-300 text-sm">Mon-Sun: 11 AM - 11 PM</p>
-                </div>
+              <div className="p-8 rounded-2xl" style={{ background: t.bgCard,
+                   border: `1px solid ${t.border}`, boxShadow: t.shadow }}>
+                <form onSubmit={handleTrackOrder} className="flex flex-col sm:flex-row gap-3 mb-6">
+                  <input type="text" placeholder="Enter your Order ID…"
+                    value={trackId} onChange={e => setTrackId(e.target.value)}
+                    style={{ ...inputStyle, flex: 1 }}
+                    onFocus={e => e.target.style.borderColor = t.accent}
+                    onBlur={e => e.target.style.borderColor = t.border}
+                  />
+                  <PrimaryBtn t={t} type="submit">Track</PrimaryBtn>
+                </form>
+
+                {trackError && (
+                  <p className="text-[13px] text-center py-3 px-4 rounded-xl"
+                     style={{ color: '#C0392B', background: 'rgba(192,57,43,0.08)',
+                              border: '1px solid rgba(192,57,43,0.15)', fontFamily: "'DM Sans', sans-serif" }}>
+                    {trackError}
+                  </p>
+                )}
+
+                {trackResult && trackResult.status !== 'Cancelled' && (
+                  <div className="animate-fade-up">
+                    <div className="flex justify-between items-baseline mb-5">
+                      <span style={{ fontFamily: "'Fraunces', serif", fontSize: '18px',
+                                     fontWeight: 700, color: t.text }}>
+                        Order #{trackResult.id}
+                      </span>
+                      <span style={{ fontSize: '13px', color: t.textMuted }}>{trackResult.customer_name}</span>
+                    </div>
+                    <div className="rounded-full overflow-hidden mb-4"
+                         style={{ height: '6px', background: t.bgElev }}>
+                      <div style={{
+                        width: `${(statuses.indexOf(trackResult.status) + 1) * 25}%`,
+                        height: '100%', background: t.accent, borderRadius: '9999px',
+                        transition: 'width 0.8s ease-out'
+                      }} />
+                    </div>
+                    <div className="flex justify-between">
+                      {stepLabels.map((s, i) => (
+                        <span key={s} style={{
+                          fontSize: '11px', fontWeight: 600, letterSpacing: '0.05em',
+                          color: statuses.indexOf(trackResult.status) >= i ? t.accent : t.textSubtle,
+                          fontFamily: "'DM Sans', sans-serif"
+                        }}>{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {trackResult?.status === 'Cancelled' && (
+                  <div className="text-center py-4 rounded-xl animate-fade-up"
+                       style={{ background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.15)' }}>
+                    <p style={{ color: '#C0392B', fontSize: '13px', fontWeight: 600 }}>
+                      This order has been cancelled.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </section>
-        </>
-      )}
 
-      {/* ---- MENU PAGE VIEW ---- */}
-      {currentView === 'menu' && (
-        <section className="relative z-10 container mx-auto px-6 pt-36 py-16 min-h-screen">
-          {!selectedCategory ? (
-            <>
-              {/* Brands Overview */}
-              <div className="text-center mb-16">
-                <h1 className="text-3xl md:text-5xl font-['Poppins'] font-black mb-4">Our Brands</h1>
-                <p className="text-base text-gray-400">Choose a brand to explore its out-of-this-world menu.</p>
+          <div className="relative z-10 container mx-auto px-6"><Divider t={t} /></div>
+
+          {/* ── Our Story ──────────────────────────────────────────────── */}
+          <section className="relative z-10 container mx-auto px-6 py-24">
+            <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 md:gap-16 items-center">
+              <div>
+                <SectionLabel t={t}>Our Story</SectionLabel>
+                <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '2.2rem',
+                             fontWeight: 900, color: t.text, lineHeight: 1.1,
+                             letterSpacing: '-0.01em', marginBottom: '20px' }}>
+                  Born from a<br />
+                  <em style={{ fontStyle: 'italic', color: t.accent }}>late-night craving.</em>
+                </h2>
+                <p style={{ fontSize: '14px', color: t.textMuted, lineHeight: 1.9, marginBottom: '14px' }}>
+                  Munchies &amp; Shakes was founded on one belief: comfort food in Calabar deserves
+                  to be extraordinary. We source the freshest local ingredients, smash our burgers
+                  to a perfect crust, and blend shakes that keep you coming back.
+                </p>
+                <p style={{ fontSize: '14px', color: t.textMuted, lineHeight: 1.9, marginBottom: '28px' }}>
+                  Every item on our menu is a labour of love — refined through hundreds of test batches
+                  until it meets our standard: nothing less than exceptional.
+                </p>
+                <GhostBtn t={t} onClick={() => navigate('menu', { resetCategory: true })}>
+                  View the Full Menu →
+                </GhostBtn>
               </div>
-              
-              {categories.length === 0 && (
-                <div className="text-center text-gray-500 text-base py-12">Loading out-of-this-world brands...</div>
-              )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-                {categories.map((category) => (
-                  <div 
-                    key={category.id} 
-                    onClick={() => setSelectedCategory(category)}
-                    className="group cursor-pointer relative bg-[#1a1a1a] rounded-3xl overflow-hidden shadow-2xl border border-white/5 hover:border-[#ff2d55]/50 transition-all duration-300 flex flex-col hover:-translate-y-2"
-                  >
-                    <div className="h-64 w-full relative bg-gray-800 overflow-hidden">
-                      <img 
-                        src={getMediaUrl(category.image) || `https://placehold.co/600x400/2a2a2a/ffffff?text=${encodeURIComponent(category.name)}`} 
-                        alt={category.name} 
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                      />
-                    </div>
-                    <div className="p-8 flex-1 flex flex-col justify-center items-center bg-gradient-to-b from-[#1a1a1a] to-[#0d0d0d]">
-                      <h3 className="text-xl font-['Poppins'] font-bold text-center group-hover:text-[#ff2d55] transition-colors">{category.name}</h3>
+              <div className="flex flex-col gap-4">
+                {[
+                  { icon: '🌿', title: 'Fresh Every Day',    body: 'All ingredients sourced and prepped fresh every morning before service.' },
+                  { icon: '🔥', title: 'Made to Order',      body: 'Nothing sits under a lamp. Every order is cooked the moment you place it.' },
+                  { icon: '⚡', title: '30-Minute Promise',  body: 'Running late? Your next order is on us, no questions asked.' },
+                ].map(item => (
+                  <div key={item.title} className="p-6 rounded-2xl flex gap-5 items-start transition-all"
+                       style={{ background: t.bgCard, border: `1px solid ${t.border}`, boxShadow: t.shadow }}>
+                    <div className="text-2xl shrink-0 mt-0.5">{item.icon}</div>
+                    <div>
+                      <h4 style={{ fontFamily: "'Fraunces', serif", fontSize: '16px',
+                                   fontWeight: 700, color: t.text, marginBottom: '4px' }}>
+                        {item.title}
+                      </h4>
+                      <p style={{ fontSize: '13px', color: t.textMuted, lineHeight: 1.7 }}>{item.body}</p>
                     </div>
                   </div>
                 ))}
               </div>
+            </div>
+          </section>
+
+          {/* ── Contact ────────────────────────────────────────────────── */}
+          <div className="relative z-10 container mx-auto px-6"><Divider t={t} /></div>
+
+          <section className="relative z-10 container mx-auto px-6 py-24 pb-32">
+            <div className="text-center mb-12">
+              <SectionLabel t={t}>Visit Us</SectionLabel>
+              <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '2rem',
+                           fontWeight: 700, color: t.text }}>
+                Come Say Hello
+              </h2>
+            </div>
+
+            <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-5">
+              {[
+                { icon: '📍', label: 'Location', lines: ['123 Galactic Way', 'Calabar, Nigeria'] },
+                { icon: '🕐', label: 'Hours',    lines: ['Monday – Sunday', '11:00 AM – 11:00 PM'] },
+                { icon: '📞', label: 'Contact',  lines: ['+234 000 000 0000', 'hello@munchies.ng'] },
+              ].map(info => (
+                <div key={info.label} className="p-8 rounded-2xl text-center transition-all"
+                     style={{ background: t.bgCard, border: `1px solid ${t.border}`, boxShadow: t.shadow }}>
+                  <div className="text-3xl mb-3">{info.icon}</div>
+                  <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.2em',
+                              textTransform: 'uppercase', color: t.accent, marginBottom: '10px',
+                              fontFamily: "'DM Sans', sans-serif" }}>
+                    {info.label}
+                  </p>
+                  {info.lines.map(l => (
+                    <p key={l} style={{ fontSize: '14px', color: t.text, lineHeight: 1.8 }}>{l}</p>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Footer */}
+          <footer style={{ borderTop: `1px solid ${t.border}` }}>
+            <div className="container mx-auto px-6 py-7 flex flex-col sm:flex-row
+                            justify-between items-center gap-3">
+              <span style={{ fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase',
+                             color: t.textMuted, fontFamily: "'DM Sans', sans-serif" }}>
+                © 2025 Munchies &amp; Shakes
+              </span>
+              <span style={{ fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase',
+                             color: t.textSubtle, fontFamily: "'DM Sans', sans-serif" }}>
+                Calabar, Nigeria
+              </span>
+            </div>
+          </footer>
+        </>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          MENU
+      ══════════════════════════════════════════════════════════════════════ */}
+      {currentView === 'menu' && (
+        <section className="container mx-auto px-4 sm:px-6 pt-24 md:pt-32 pb-20 min-h-screen">
+          {!selectedCategory ? (
+            <>
+              <div className="mb-10">
+                <SectionLabel t={t}>What We Serve</SectionLabel>
+                <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 'clamp(1.8rem,6vw,2.8rem)', fontWeight: 900,
+                             color: t.text, marginBottom: '8px' }}>
+                  Our Brands
+                </h1>
+                <p style={{ fontSize: '15px', color: t.textMuted }}>Select a brand to explore its full menu.</p>
+              </div>
+
+              {categories.length === 0 ? <Spinner t={t} /> : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {categories.map(cat => (
+                    <button key={cat.id} onClick={() => setSelectedCategory(cat)}
+                      className="group text-left rounded-2xl overflow-hidden transition-all duration-300
+                                 hover:-translate-y-1"
+                      style={{ background: t.bgCard, border: `1px solid ${t.border}`,
+                               boxShadow: t.shadow }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = t.borderAcc;
+                                          e.currentTarget.style.boxShadow = t.shadowHover; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = t.border;
+                                          e.currentTarget.style.boxShadow = t.shadow; }}>
+                      <div className="h-52 overflow-hidden relative"
+                           style={{ background: t.bgElev }}>
+                        <img src={getMediaUrl(cat.image) || `https://placehold.co/600x400/F5EDE0/C8B8A8?text=${encodeURIComponent(cat.name)}`}
+                             alt={cat.name}
+                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="absolute inset-0"
+                             style={{ background: 'linear-gradient(to top, rgba(44,24,16,0.35), transparent)' }} />
+                      </div>
+                      <div className="px-6 py-5 flex items-center justify-between">
+                        <span style={{ fontFamily: "'Fraunces', serif", fontSize: '18px',
+                                       fontWeight: 700, color: t.text }}>
+                          {cat.name}
+                        </span>
+                        <span style={{ color: t.accent, fontSize: '18px' }}>→</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </>
           ) : (
             <>
-              {/* Specific Brand View */}
-              <div className="mb-12">
-                <button 
-                  onClick={() => setSelectedCategory(null)}
-                  className="text-[#ff2d55] hover:text-white text-sm font-bold flex items-center gap-2 transition-colors mb-6"
-                >
+              <div className="mb-10">
+                <button onClick={() => setSelectedCategory(null)}
+                  className="flex items-center gap-2 mb-7 text-[13px] font-medium transition-opacity hover:opacity-70"
+                  style={{ color: t.textMuted, fontFamily: "'DM Sans', sans-serif" }}>
                   ← Back to Brands
                 </button>
-                <div className="flex items-center gap-6 mb-8">
+                <div className="flex items-center gap-5">
                   {selectedCategory.image && (
-                    <img src={getMediaUrl(selectedCategory.image)} alt={selectedCategory.name} className="w-20 h-20 rounded-full object-cover border-2 border-[#ff2d55]" />
+                    <img src={getMediaUrl(selectedCategory.image)} alt={selectedCategory.name}
+                         className="w-14 h-14 rounded-xl object-cover"
+                         style={{ border: `2px solid ${t.borderAcc}` }} />
                   )}
                   <div>
-                    <h1 className="text-3xl md:text-5xl font-['Poppins'] font-black">{selectedCategory.name}</h1>
+                    <h1 style={{ fontFamily: "'Fraunces', serif",
+                                 fontSize: isMobile ? '1.4rem' : '2.4rem',
+                                 fontWeight: 900, color: t.text }}>
+                      {selectedCategory.name}
+                    </h1>
+                    <p style={{ fontSize: '12px', color: t.textMuted, marginTop: '3px' }}>
+                      {selectedCategory.menu_items?.length || 0} items available
+                    </p>
                   </div>
                 </div>
               </div>
 
               {(() => {
-                // Group items by subcategory
-                const groupedItems = selectedCategory.menu_items.reduce((acc, item) => {
-                  const sub = item.subcategory || 'Main Menu';
+                const grouped = selectedCategory.menu_items.reduce((acc, item) => {
+                  const sub = item.subcategory || 'Menu';
                   if (!acc[sub]) acc[sub] = [];
                   acc[sub].push(item);
                   return acc;
                 }, {});
 
-                return Object.entries(groupedItems).map(([subName, items]) => (
-                  <div key={subName} className="mb-16">
-                    {/* Only show the subcategory title if it's not the default "Main Menu" OR if there are multiple categories */}
-                    {(subName !== 'Main Menu' || Object.keys(groupedItems).length > 1) && (
-                      <h3 className="text-2xl font-['Poppins'] font-bold mb-8 border-l-4 border-[#ff2d55] pl-4 text-white">
-                        {subName}
-                      </h3>
+                return Object.entries(grouped).map(([subName, items]) => (
+                  <div key={subName} className="mb-14">
+                    {(subName !== 'Menu' || Object.keys(grouped).length > 1) && (
+                      <div className="flex items-center gap-4 mb-7">
+                        <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.18em',
+                                       textTransform: 'uppercase', color: t.accent,
+                                       fontFamily: "'DM Sans', sans-serif" }}>
+                          {subName}
+                        </span>
+                        <div style={{ flex: 1, height: '1px', background: t.border }} />
+                      </div>
                     )}
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-                      {items.map((item) => {
-                        const hasOptions = item.options && item.options.length > 0;
-                        const selectedOptionId = selectedOptions[item.id] || (hasOptions ? item.options[0].id : null);
-                        const selectedOption = hasOptions ? item.options.find(opt => opt.id === selectedOptionId) || item.options[0] : null;
-                        const currentPrice = hasOptions ? selectedOption.price : item.price;
+
+                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+                      {items.map(item => {
+                        const hasOpts  = item.options?.length > 0;
+                        const selOptId = selectedOptions[item.id] ?? (hasOpts ? item.options[0].id : null);
+                        const selOpt   = hasOpts ? (item.options.find(o => o.id === selOptId) ?? item.options[0]) : null;
+                        const price    = hasOpts ? selOpt.price : item.price;
 
                         return (
-                          <div key={item.id} className="group relative bg-[#1a1a1a] rounded-3xl overflow-hidden shadow-2xl border border-white/5 hover:border-[#ff2d55]/50 transition-all duration-300 flex flex-col hover:-translate-y-2">
-                            {/* Recommended Badge */}
+                          <div key={item.id}
+                            className="group rounded-2xl overflow-hidden transition-all duration-300
+                                       hover:-translate-y-1 flex flex-col relative"
+                            style={{ background: t.bgCard, border: `1px solid ${t.border}`,
+                                     boxShadow: t.shadow }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = t.borderAcc;
+                                                e.currentTarget.style.boxShadow = t.shadowHover; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = t.border;
+                                                e.currentTarget.style.boxShadow = t.shadow; }}>
+
                             {item.recommended && (
-                              <span className="absolute top-4 right-4 bg-[#ff2d55] text-white text-[10px] font-bold px-3 py-1.5 rounded-full z-10 shadow-[0_4px_10px_rgba(255,45,85,0.4)] tracking-wider uppercase">
-                                Recommended
+                              <span className="absolute top-3 right-3 z-10 text-[9px] font-bold
+                                               tracking-wider uppercase px-3 py-1 rounded-full"
+                                    style={{ background: t.accent, color: '#fff',
+                                             fontFamily: "'DM Sans', sans-serif" }}>
+                                Chef's Pick
                               </span>
                             )}
-                            <div className="h-64 w-full relative bg-gray-800 overflow-hidden">
-                              <img 
-                                src={getMediaUrl(item.image) || `https://placehold.co/600x400/2a2a2a/ffffff?text=${encodeURIComponent(item.name)}`} 
-                                alt={item.name} 
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                              />
+
+                            <div className="h-36 sm:h-48 overflow-hidden relative"
+                                 style={{ background: t.bgElev }}>
+                              <img src={getMediaUrl(item.image) || `https://placehold.co/600x400/F5EDE0/C8B8A8?text=${encodeURIComponent(item.name)}`}
+                                   alt={item.name}
+                                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                              <div className="absolute inset-0"
+                                   style={{ background: 'linear-gradient(to top, rgba(44,24,16,0.25), transparent)' }} />
                             </div>
-                            <div className="p-8 flex-1 flex flex-col justify-between bg-gradient-to-b from-[#1a1a1a] to-[#0d0d0d]">
-                              <div className="flex justify-between items-start mb-4 gap-4">
-                                <div>
-                                  <h3 className="text-lg font-['Poppins'] font-bold mb-1">{item.name}</h3>
-                                  <p className="text-gray-400 text-xs leading-relaxed line-clamp-2">{item.description}</p>
+
+                            <div className="p-3 sm:p-5 flex-1 flex flex-col">
+                              <div className="flex justify-between items-start gap-3 mb-3">
+                                <div className="flex-1 min-w-0">
+                                  <h3 style={{ fontFamily: "'Fraunces', serif",
+                                               fontSize: isMobile ? '12px' : '16px',
+                                               fontWeight: 700, color: t.text, marginBottom: '3px',
+                                               lineHeight: 1.3 }}>
+                                    {item.name}
+                                  </h3>
+                                  {item.description && !isMobile && (
+                                    <p className="line-clamp-2"
+                                       style={{ fontSize: '12px', color: t.textMuted, lineHeight: 1.6 }}>
+                                      {item.description}
+                                    </p>
+                                  )}
                                 </div>
-                                <span className="text-[#ff2d55] font-black text-lg">₦{currentPrice}</span>
+                                <span style={{ fontFamily: "'Fraunces', serif",
+                                               fontSize: isMobile ? '13px' : '18px',
+                                               fontWeight: 700, color: t.accent, flexShrink: 0 }}>
+                                  ₦{fmtPrice(price)}
+                                </span>
                               </div>
-                              
-                              {hasOptions && (
-                                <div className="mb-4">
-                                  <select 
-                                    value={selectedOptionId}
-                                    onChange={(e) => handleOptionChange(item.id, parseInt(e.target.value))}
-                                    className="w-full bg-[#242424] text-white text-sm px-3 py-2 rounded-xl outline-none border border-gray-700 focus:border-[#ff2d55] transition-colors"
-                                  >
-                                    {item.options.map(opt => (
-                                      <option key={opt.id} value={opt.id}>{opt.name}</option>
-                                    ))}
-                                  </select>
-                                </div>
+
+                              {hasOpts && (
+                                <select value={selOptId}
+                                  onChange={e => handleOptionChange(item.id, parseInt(e.target.value))}
+                                  className="mb-2 cursor-pointer"
+                                  style={{ ...inputStyle,
+                                           padding: isMobile ? '6px 8px' : '10px 14px',
+                                           fontSize: isMobile ? '11px' : '13px' }}
+                                  onFocus={e => e.target.style.borderColor = t.accent}
+                                  onBlur={e => e.target.style.borderColor = t.border}>
+                                  {item.options.map(o => (
+                                    <option key={o.id} value={o.id}>{o.name} — ₦{fmtPrice(o.price)}</option>
+                                  ))}
+                                </select>
                               )}
 
+                              <button
+                                onClick={() => addToCart({
+                                  id:                 hasOpts ? `${item.id}-${selOpt.id}` : item.id,
+                                  name:               hasOpts ? `${item.name} (${selOpt.name})` : item.name,
+                                  price,
+                                  menu_item_id:       item.id,
+                                  selected_option_id: hasOpts ? selOpt.id : null,
+                                })}
+                                className="mt-auto w-full rounded-xl font-semibold
+                                           tracking-wide transition-all duration-200 active:scale-95"
+                                style={{ border: `1.5px solid ${t.borderAcc}`, color: t.accent,
+                                         background: 'transparent', fontFamily: "'DM Sans', sans-serif",
+                                         fontSize: isMobile ? '11px' : '12px',
+                                         padding: isMobile ? '7px 4px' : '10px' }}
+                                onMouseEnter={e => { e.currentTarget.style.background = t.accent;
+                                                     e.currentTarget.style.color = '#fff';
+                                                     e.currentTarget.style.borderColor = t.accent; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent';
+                                                     e.currentTarget.style.color = t.accent;
+                                                     e.currentTarget.style.borderColor = t.borderAcc; }}>
+                                Add to Order
+                              </button>
                             </div>
-                            <button 
-                              onClick={() => addToCart({ 
-                                id: hasOptions ? `${item.id}-${selectedOption.id}` : item.id, 
-                                name: hasOptions ? `${item.name} (${selectedOption.name})` : item.name, 
-                                price: currentPrice,
-                                menu_item_id: item.id,
-                                selected_option_id: hasOptions ? selectedOption.id : null 
-                              })} 
-                              className="w-full py-3 bg-white/5 border border-white/10 text-white text-sm font-bold rounded-2xl hover:bg-[#ff2d55] hover:border-[#ff2d55] hover:shadow-[0_0_20px_rgba(255,45,85,0.4)] transition-all duration-300 active:scale-95"
-                            >
-                              Add to Cart
-                            </button>
                           </div>
                         );
                       })}
@@ -506,176 +930,316 @@ function App() {
         </section>
       )}
 
-      {/* ---- EVENTS PAGE VIEW ---- */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          EVENTS
+      ══════════════════════════════════════════════════════════════════════ */}
       {currentView === 'events' && (
-        <section className="relative z-10 container mx-auto px-6 pt-36 py-16 min-h-screen">
-          <div className="text-center mb-16">
-            <h1 className="text-3xl md:text-5xl font-['Poppins'] font-black mb-4">Events & Promos</h1>
-            <p className="text-base text-gray-400">See what's happening at Munchies and Shakes.</p>
+        <section className="container mx-auto px-4 sm:px-6 pt-24 md:pt-32 pb-20 min-h-screen">
+          <div className="mb-10">
+            <SectionLabel t={t}>What's On</SectionLabel>
+            <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 'clamp(1.8rem,6vw,2.8rem)', fontWeight: 900,
+                         color: t.text, marginBottom: '8px' }}>
+              Events &amp; Promos
+            </h1>
+            <p style={{ fontSize: '15px', color: t.textMuted }}>
+              The latest from Munchies &amp; Shakes.
+            </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            {events.length === 0 ? (
-               <p className="text-center text-gray-500 col-span-1 md:col-span-2 text-base">No active events or promos at this time. Stay tuned!</p>
-            ) : (
-               events.map(event => (
-                 <div key={event.id} className="bg-[#1a1a1a] rounded-3xl overflow-hidden shadow-2xl border border-white/5 flex flex-col">
-                   {event.image && <img src={getMediaUrl(event.image)} alt={event.title} className="w-full h-72 object-cover" />}
-                   <div className="p-8 flex-1 flex flex-col justify-center">
-                     <h3 className="text-xl font-['Poppins'] font-bold mb-2">{event.title}</h3>
-                     <p className="text-gray-400 text-sm leading-relaxed whitespace-pre-line">{event.description}</p>
-                   </div>
-                 </div>
-               ))
-            )}
-          </div>
+
+          {events.length === 0 ? (
+            <div className="text-center py-28">
+              <p style={{ fontSize: '13px', color: t.textMuted, letterSpacing: '0.08em' }}>
+                No active events at this time. Check back soon.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {events.map(ev => (
+                <div key={ev.id} className="rounded-2xl overflow-hidden flex flex-col"
+                     style={{ background: t.bgCard, border: `1px solid ${t.border}`,
+                              boxShadow: t.shadow }}>
+                  {ev.image && (
+                    <img src={getMediaUrl(ev.image)} alt={ev.title}
+                         className="w-full h-60 object-cover" />
+                  )}
+                  <div className="p-5 sm:p-8">
+                    <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: '18px',
+                                 fontWeight: 700, color: t.text, marginBottom: '10px' }}>
+                      {ev.title}
+                    </h3>
+                    <p style={{ fontSize: '14px', color: t.textMuted, lineHeight: 1.8,
+                                whiteSpace: 'pre-line' }}>
+                      {ev.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
-      {/* ---- CAREERS PAGE VIEW ---- */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          CAREERS
+      ══════════════════════════════════════════════════════════════════════ */}
       {currentView === 'careers' && (
-        <section className="relative z-10 container mx-auto px-6 pt-36 py-16 min-h-screen">
-          <div className="text-center mb-16">
-            <h1 className="text-3xl md:text-5xl font-['Poppins'] font-black mb-4">Join Our Team</h1>
-            <p className="text-base text-gray-400">We are always looking for passionate people to create magic.</p>
+        <section className="container mx-auto px-4 sm:px-6 pt-24 md:pt-32 pb-20 min-h-screen">
+          <div className="mb-10">
+            <SectionLabel t={t}>Join the Team</SectionLabel>
+            <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 'clamp(1.8rem,6vw,2.8rem)', fontWeight: 900,
+                         color: t.text, marginBottom: '8px' }}>
+              Work With Us
+            </h1>
+            <p style={{ fontSize: '15px', color: t.textMuted }}>
+              Passionate about food and great service? We'd love to meet you.
+            </p>
           </div>
-          <div className="max-w-4xl mx-auto space-y-6">
-            {jobs.length === 0 ? (
-               <p className="text-center text-gray-500 text-base">No open positions right now, but we are always taking resumes!</p>
-            ) : (
-               jobs.map(job => (
-                 <div key={job.id} className="bg-[#1a1a1a] p-8 md:p-10 rounded-3xl shadow-xl border border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                   <div className="flex-1">
-                     <h3 className="text-lg md:text-xl font-['Poppins'] font-bold mb-2">{job.title}</h3>
-                     <p className="text-gray-400 text-sm leading-relaxed whitespace-pre-line">{job.description}</p>
-                   </div>
-                   <button className="w-full md:w-auto px-6 py-3 bg-white/10 text-white font-bold text-sm rounded-2xl hover:bg-[#ff2d55] transition-colors border border-white/10 shrink-0 shadow-lg">
-                     Apply Now
-                   </button>
-                 </div>
-               ))
-            )}
-          </div>
+
+          {jobs.length === 0 ? (
+            <div className="text-center py-28">
+              <p style={{ fontSize: '14px', color: t.textMuted, marginBottom: '20px' }}>
+                No open positions right now — but we're always accepting CVs.
+              </p>
+              <GhostBtn t={t} onClick={() => {}}>Send Your CV</GhostBtn>
+            </div>
+          ) : (
+            <div className="max-w-3xl space-y-4">
+              {jobs.map(job => (
+                <div key={job.id} className="p-7 rounded-2xl flex flex-col md:flex-row
+                                             justify-between items-start md:items-center gap-5"
+                     style={{ background: t.bgCard, border: `1px solid ${t.border}`,
+                              boxShadow: t.shadow }}>
+                  <div className="flex-1">
+                    <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: '19px',
+                                 fontWeight: 700, color: t.text, marginBottom: '6px' }}>
+                      {job.title}
+                    </h3>
+                    <p style={{ fontSize: '13px', color: t.textMuted, lineHeight: 1.8,
+                                whiteSpace: 'pre-line' }}>
+                      {job.description}
+                    </p>
+                  </div>
+                  <PrimaryBtn t={t} onClick={() => {}}>Apply Now</PrimaryBtn>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
-      {/* ---- CART MODAL ---- */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          CART SIDEBAR
+      ══════════════════════════════════════════════════════════════════════ */}
       {isCartOpen && (
         <div className="fixed inset-0 z-[100] flex justify-end">
-          {/* Overlay */}
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setIsCartOpen(false)}
-          ></div>
-          
-          {/* Sidebar */}
-          <div className="relative w-full max-w-md bg-[#1a1a1a] h-full shadow-2xl flex flex-col border-l border-white/10 animate-fade-in">
-            <div className="p-6 border-b border-white/10 flex justify-between items-center bg-[#1a1a1a] z-10">
-              <h2 className="text-2xl font-['Poppins'] font-bold">Your Order</h2>
-              <button onClick={() => setIsCartOpen(false)} className="text-gray-400 hover:text-white transition-colors p-2 text-2xl leading-none">
-                ✕
-              </button>
+          <div className="absolute inset-0 cursor-pointer"
+               style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
+               onClick={() => setIsCartOpen(false)} />
+
+          <div className="relative w-full max-w-sm h-full flex flex-col animate-slide-right scrollbar-thin"
+               style={{ background: t.cartBg, borderLeft: `1px solid ${t.border}` }}>
+
+            {/* Header */}
+            <div className="px-6 py-5 flex justify-between items-center shrink-0"
+                 style={{ borderBottom: `1px solid ${t.border}` }}>
+              <div>
+                <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '20px',
+                             fontWeight: 700, color: t.text }}>
+                  Your Order
+                </h2>
+                {cartItemCount > 0 && (
+                  <p style={{ fontSize: '12px', color: t.textMuted, marginTop: '2px',
+                              fontFamily: "'DM Sans', sans-serif" }}>
+                    {cartItemCount} item{cartItemCount !== 1 ? 's' : ''}
+                  </p>
+                )}
+              </div>
+              <CloseBtn t={t} onClick={() => setIsCartOpen(false)} />
             </div>
-            
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+
+            {/* Items */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-3">
               {cartItems.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-gray-500 space-y-4">
-                  <p className="text-lg">Your cart is empty.</p>
-                  <button onClick={() => { setIsCartOpen(false); setCurrentView('menu'); window.scrollTo(0,0); }} className="px-6 py-3 bg-white/10 text-white font-bold rounded-2xl hover:bg-[#ff2d55] transition-colors">
+                <div className="flex flex-col items-center justify-center h-full text-center py-16">
+                  <div className="text-5xl mb-4">🛒</div>
+                  <p style={{ fontFamily: "'Fraunces', serif", fontSize: '18px',
+                              fontWeight: 700, color: t.text, marginBottom: '8px' }}>
+                    Cart is empty
+                  </p>
+                  <p style={{ fontSize: '13px', color: t.textMuted, marginBottom: '24px' }}>
+                    Add something delicious.
+                  </p>
+                  <GhostBtn t={t} onClick={() => { setIsCartOpen(false); navigate('menu', { resetCategory: true }); }}>
                     Browse Menu
-                  </button>
+                  </GhostBtn>
                 </div>
               ) : (
                 cartItems.map(item => (
-                  <div key={item.id} className="flex items-center gap-4 bg-[#242424] p-4 rounded-2xl border border-white/5">
-                    <div className="flex-1">
-                      <h4 className="font-bold text-base mb-1 leading-tight">{item.name}</h4>
-                      <p className="text-[#ff2d55] font-black text-sm">₦{item.price}</p>
+                  <div key={item.id} className="flex items-center gap-4 p-4 rounded-xl"
+                       style={{ background: t.bgCard, border: `1px solid ${t.border}` }}>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="truncate"
+                          style={{ fontSize: '13px', fontWeight: 600, color: t.text,
+                                   marginBottom: '3px', fontFamily: "'DM Sans', sans-serif" }}>
+                        {item.name}
+                      </h4>
+                      <span style={{ fontFamily: "'Fraunces', serif", fontSize: '15px',
+                                     fontWeight: 700, color: t.accent }}>
+                        ₦{item.price}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-3 bg-[#1a1a1a] rounded-xl p-1 border border-white/10">
-                      <button onClick={() => updateCartQuantity(item.id, -1)} className="w-8 h-8 flex items-center justify-center bg-white/5 hover:bg-[#ff2d55] rounded-lg transition-colors font-bold">
-                        -
-                      </button>
-                      <span className="w-4 text-center font-bold text-sm">{item.quantity}</span>
-                      <button onClick={() => updateCartQuantity(item.id, 1)} className="w-8 h-8 flex items-center justify-center bg-white/5 hover:bg-[#ff2d55] rounded-lg transition-colors font-bold">
-                        +
-                      </button>
+                    <div className="flex items-center rounded-xl overflow-hidden"
+                         style={{ border: `1px solid ${t.border}` }}>
+                      <button onClick={() => updateQty(item.id, -1)}
+                        className="w-8 h-8 flex items-center justify-center text-lg font-light
+                                   transition-colors"
+                        style={{ color: t.textMuted, background: t.bgElev }}
+                        onMouseEnter={e => e.currentTarget.style.color = t.accent}
+                        onMouseLeave={e => e.currentTarget.style.color = t.textMuted}>−</button>
+                      <span className="w-8 text-center text-[13px] font-bold"
+                            style={{ color: t.text, fontFamily: "'DM Sans', sans-serif",
+                                     background: t.bgCard }}>
+                        {item.quantity}
+                      </span>
+                      <button onClick={() => updateQty(item.id, 1)}
+                        className="w-8 h-8 flex items-center justify-center font-bold transition-colors"
+                        style={{ color: t.textMuted, background: t.bgElev }}
+                        onMouseEnter={e => e.currentTarget.style.color = t.accent}
+                        onMouseLeave={e => e.currentTarget.style.color = t.textMuted}>+</button>
                     </div>
                   </div>
                 ))
               )}
             </div>
-            
+
+            {/* Footer */}
             {cartItems.length > 0 && (
-              <div className="p-6 bg-[#1a1a1a] border-t border-white/10 z-10">
-                <div className="flex justify-between items-center mb-6">
-                  <span className="text-gray-400 font-medium">Total</span>
-                  <span className="text-3xl font-black font-['Poppins']">₦{cartTotal.toFixed(2)}</span>
+              <div className="px-6 py-5 shrink-0"
+                   style={{ borderTop: `1px solid ${t.border}` }}>
+                <div className="flex justify-between items-baseline mb-5">
+                  <span style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.12em',
+                                 textTransform: 'uppercase', color: t.textMuted,
+                                 fontFamily: "'DM Sans', sans-serif" }}>
+                    Total
+                  </span>
+                  <span style={{ fontFamily: "'Fraunces', serif", fontSize: '26px',
+                                 fontWeight: 700, color: t.text }}>
+                    ₦{cartTotal.toFixed(2)}
+                  </span>
                 </div>
-                <button 
-                  onClick={() => setIsCheckoutOpen(true)}
-                  className="w-full py-4 bg-[#ff2d55] text-white font-bold text-lg rounded-2xl shadow-[0_8px_30px_rgba(255,45,85,0.4)] hover:shadow-[0_8px_40px_rgba(255,45,85,0.6)] hover:-translate-y-1 transition-all active:scale-95"
-                >
+                <PrimaryBtn t={t} onClick={() => setIsCheckoutOpen(true)} full>
                   Proceed to Checkout
-                </button>
+                </PrimaryBtn>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* ---- CHECKOUT MODAL ---- */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          CHECKOUT MODAL
+      ══════════════════════════════════════════════════════════════════════ */}
       {isCheckoutOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => !isSubmitting && !orderSuccess && setIsCheckoutOpen(false)}></div>
-          <div className="relative bg-[#1a1a1a] rounded-3xl p-8 max-w-lg w-full shadow-2xl border border-white/10 animate-fade-in">
+          <div className="absolute inset-0 cursor-pointer"
+               style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(10px)' }}
+               onClick={() => !isSubmitting && !orderSuccess && setIsCheckoutOpen(false)} />
+
+          <div className="relative w-full max-w-md rounded-2xl p-5 sm:p-8 animate-pop-in overflow-y-auto"
+               style={{ background: t.bgCard, border: `1px solid ${t.border}`,
+                        boxShadow: '0 24px 80px rgba(0,0,0,0.25)', maxHeight: '90dvh' }}>
+
             {orderSuccess ? (
-              <div className="text-center py-8">
-                <div className="w-20 h-20 bg-[#ff2d55]/20 text-[#ff2d55] rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">
-                  ✓
+              <div className="text-center py-4">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
+                     style={{ background: `rgba(193,92,46,0.12)`,
+                              border: `1.5px solid ${t.borderAcc}` }}>
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                       style={{ color: t.accent }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
-                <h2 className="text-3xl font-['Poppins'] font-black mb-4">Order Received!</h2>
-                <p className="text-gray-400 mb-6">Your order <span className="text-white font-bold">#{orderSuccess.id}</span> is now being prepared. Use your tracking number to see its status!</p>
-                <button 
-                  onClick={() => { setIsCheckoutOpen(false); setIsCartOpen(false); setOrderSuccess(null); }}
-                  className="w-full py-4 bg-[#ff2d55] text-white font-bold rounded-2xl hover:bg-[#e0264b] transition-colors"
-                >
-                  Close
-                </button>
+                <SectionLabel t={t}>Order Confirmed</SectionLabel>
+                <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '26px',
+                             fontWeight: 900, color: t.text, marginBottom: '8px' }}>
+                  Order #{orderSuccess.id}
+                </h2>
+                <p style={{ fontSize: '14px', color: t.textMuted, lineHeight: 1.8,
+                            maxWidth: '280px', margin: '0 auto 28px' }}>
+                  Your order is being prepared. Use your order number above to track its status.
+                </p>
+                <PrimaryBtn t={t} onClick={() => { setIsCheckoutOpen(false); setIsCartOpen(false); setOrderSuccess(null); }} full>
+                  Done
+                </PrimaryBtn>
               </div>
             ) : (
               <>
-                <div className="flex justify-between items-center mb-8">
-                  <h2 className="text-3xl font-['Poppins'] font-bold">Checkout</h2>
-                  <button onClick={() => !isSubmitting && setIsCheckoutOpen(false)} className="text-gray-400 hover:text-white transition-colors p-2 text-2xl leading-none">
-                    ✕
-                  </button>
+                <div className="flex justify-between items-start mb-7">
+                  <div>
+                    <SectionLabel t={t}>Place Order</SectionLabel>
+                    <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '24px',
+                                 fontWeight: 700, color: t.text }}>
+                      Checkout
+                    </h2>
+                  </div>
+                  <CloseBtn t={t} onClick={() => !isSubmitting && setIsCheckoutOpen(false)} />
                 </div>
-                <form onSubmit={handleCheckoutSubmit} className="space-y-5">
+
+                <form onSubmit={handleCheckout} className="space-y-4">
+                  {[
+                    { label: 'Full Name',    key: 'name',  type: 'text', ph: 'John Doe' },
+                    { label: 'Phone Number', key: 'phone', type: 'tel',  ph: '08012345678' },
+                  ].map(f => (
+                    <div key={f.key}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 700,
+                                      letterSpacing: '0.18em', textTransform: 'uppercase',
+                                      color: t.textMuted, marginBottom: '8px',
+                                      fontFamily: "'DM Sans', sans-serif" }}>
+                        {f.label}
+                      </label>
+                      <input required type={f.type} placeholder={f.ph}
+                        value={checkoutData[f.key]}
+                        onChange={e => setCheckoutData({ ...checkoutData, [f.key]: e.target.value })}
+                        style={{ ...inputStyle, background: t.bgInput }}
+                        onFocus={e => e.target.style.borderColor = t.accent}
+                        onBlur={e => e.target.style.borderColor = t.border}
+                      />
+                    </div>
+                  ))}
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Full Name</label>
-                    <input required type="text" value={checkoutData.name} onChange={e => setCheckoutData({...checkoutData, name: e.target.value})} className="w-full bg-[#242424] text-white px-4 py-3 rounded-xl border border-gray-700 focus:border-[#ff2d55] outline-none transition-colors" placeholder="John Doe" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Phone Number</label>
-                    <input required type="tel" value={checkoutData.phone} onChange={e => setCheckoutData({...checkoutData, phone: e.target.value})} className="w-full bg-[#242424] text-white px-4 py-3 rounded-xl border border-gray-700 focus:border-[#ff2d55] outline-none transition-colors" placeholder="08012345678" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Delivery Address</label>
-                    <textarea required value={checkoutData.address} onChange={e => setCheckoutData({...checkoutData, address: e.target.value})} className="w-full bg-[#242424] text-white px-4 py-3 rounded-xl border border-gray-700 focus:border-[#ff2d55] outline-none transition-colors h-24 resize-none" placeholder="123 Galaxy Avenue..." />
-                  </div>
-                  
-                  <div className="pt-4 border-t border-white/10 mt-6 flex justify-between items-center">
-                    <span className="text-gray-400">Total</span>
-                    <span className="text-2xl font-black text-[#ff2d55]">₦{cartTotal.toFixed(2)}</span>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700,
+                                    letterSpacing: '0.18em', textTransform: 'uppercase',
+                                    color: t.textMuted, marginBottom: '8px',
+                                    fontFamily: "'DM Sans', sans-serif" }}>
+                      Delivery Address
+                    </label>
+                    <textarea required placeholder="123 Galaxy Avenue, Calabar…"
+                      value={checkoutData.address}
+                      onChange={e => setCheckoutData({ ...checkoutData, address: e.target.value })}
+                      style={{ ...inputStyle, height: '84px', resize: 'none',
+                               background: t.bgInput }}
+                      onFocus={e => e.target.style.borderColor = t.accent}
+                      onBlur={e => e.target.style.borderColor = t.border}
+                    />
                   </div>
 
-                  <button 
-                    disabled={isSubmitting}
-                    type="submit" 
-                    className="w-full py-4 mt-6 bg-[#ff2d55] text-white font-bold text-lg rounded-2xl shadow-[0_4px_15px_rgba(255,45,85,0.4)] hover:bg-[#e0264b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? 'Processing...' : 'Place Order'}
-                  </button>
+                  <div className="flex justify-between items-center py-4"
+                       style={{ borderTop: `1px solid ${t.border}`,
+                                borderBottom: `1px solid ${t.border}` }}>
+                    <span style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.1em',
+                                   textTransform: 'uppercase', color: t.textMuted,
+                                   fontFamily: "'DM Sans', sans-serif" }}>
+                      Order Total
+                    </span>
+                    <span style={{ fontFamily: "'Fraunces', serif", fontSize: '24px',
+                                   fontWeight: 700, color: t.accent }}>
+                      ₦{cartTotal.toFixed(2)}
+                    </span>
+                  </div>
+
+                  <PrimaryBtn t={t} type="submit" disabled={isSubmitting} full>
+                    {isSubmitting ? 'Placing Order…' : 'Place Order'}
+                  </PrimaryBtn>
                 </form>
               </>
             )}
@@ -683,8 +1247,25 @@ function App() {
         </div>
       )}
 
-    </div>
-  )
-}
+      {/* ══════════════════════════════════════════════════════════════════════
+          TOAST
+      ══════════════════════════════════════════════════════════════════════ */}
+      {toastMessage && (
+        <div className="fixed bottom-7 left-1/2 -translate-x-1/2 z-[120] pointer-events-none
+                        flex items-center gap-3 px-5 py-3.5 rounded-xl animate-fade-up"
+             style={{ background: t.bgCard, border: `1px solid ${t.border}`,
+                      color: t.text, boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
+                      fontFamily: "'DM Sans', sans-serif" }}>
+          <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+               style={{ background: t.accent }}>
+            <svg className="w-3 h-3" fill="none" stroke="#fff" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <span style={{ fontSize: '13px', fontWeight: 500 }}>{toastMessage}</span>
+        </div>
+      )}
 
-export default App
+    </div>
+  );
+}
