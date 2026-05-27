@@ -34,3 +34,6 @@ export default function FoodModel({ url, radius = 0, angleOffset = 0, scale = 0.
 
 // Preload the model so it caches in the background for better performance
 useGLTF.preload('/models/scene_modern.glb')
+
+// DRACO decoder for compressed GLB files (required on some devices/browsers)
+useGLTF.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/')

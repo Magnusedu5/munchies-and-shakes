@@ -363,7 +363,7 @@ export default function App() {
             {/* Center — Logo */}
             <div className="flex justify-center">
               <button onClick={() => navigate('home')}
-                className="flex items-center justify-center h-[110px] w-full md:h-14 md:w-60">
+                className="flex items-center justify-center h-[110px] w-full md:h-[60px] md:w-80">
                 {brandAssets.header_image
                   ? <img src={getMediaUrl(brandAssets.header_image)} alt="Munchies and Shakes"
                          className="w-full h-full object-contain" />
@@ -510,7 +510,7 @@ export default function App() {
             </div>
 
             {/* 3D model */}
-            <div className="flex-1 w-full relative h-[520px] sm:h-[480px] md:h-[660px]">
+            <div className="shrink-0 w-full relative" style={{ height: 'clamp(420px, 60vw, 660px)' }}>
               <div className="absolute inset-0 pointer-events-none"
                    style={{ background: `radial-gradient(ellipse at center, rgba(193,92,46,0.12) 0%, transparent 65%)`,
                             filter: 'blur(30px)' }} />
