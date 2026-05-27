@@ -13,7 +13,7 @@ export const DESIGN_DEFAULTS = {
 
   // Logo — desktop (md+)
   logoHeightDesktop:  147,   // px  (293 × 0.5)
-  logoWidthDesktop:   585,   // px  (390 × 1.5)
+  logoWidthDesktop:   878,   // px  (585 × 1.5)
 
   // Hero layout
   heroPaddingTop:     124,   // px — top padding on mobile (below fixed nav)
