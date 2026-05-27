@@ -331,7 +331,7 @@ export default function App() {
            style={{ background: t.bgNav, borderBottom: `1px solid ${t.navBorder}`,
                     backdropFilter: 'blur(16px)' }}>
         <div className="container mx-auto px-6">
-          <nav className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[1fr_auto_1fr] items-center h-[116px] md:h-[62px]">
+          <nav className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[1fr_auto_1fr] items-center h-[70px]">
 
             {/* Left — hamburger / links */}
             <div className="md:hidden">
@@ -363,7 +363,7 @@ export default function App() {
             {/* Center — Logo */}
             <div className="flex justify-center">
               <button onClick={() => navigate('home')}
-                className="flex items-center justify-center h-[110px] w-full md:h-[60px] md:w-80">
+                className="flex items-center justify-center h-[52px] w-[200px] md:h-[58px] md:w-[280px]">
                 {brandAssets.header_image
                   ? <img src={getMediaUrl(brandAssets.header_image)} alt="Munchies and Shakes"
                          className="w-full h-full object-contain" />
@@ -447,11 +447,11 @@ export default function App() {
           )}
 
           {/* ── Hero ───────────────────────────────────────────────────── */}
-          <section className="relative z-10 min-h-[100svh] container mx-auto px-4 sm:px-6
+          <section className="relative z-10 min-h-screen container mx-auto px-6
                               flex flex-col md:flex-row items-center
-                              pt-[130px] pb-12 md:pt-0 gap-8 md:gap-16">
+                              pt-[86px] pb-16 md:py-0 gap-12 md:gap-16">
             {/* Copy */}
-            <div className="flex-1 w-full space-y-5 text-center md:text-left animate-fade-up">
+            <div className="flex-1 w-full max-w-xl mx-auto md:mx-0 space-y-5 text-center md:text-left animate-fade-up">
               <SectionLabel t={t}>Calabar's Finest · Est. 2023</SectionLabel>
 
               <h1 style={{ fontFamily: "'Fraunces', serif", color: t.text,
@@ -510,7 +510,7 @@ export default function App() {
             </div>
 
             {/* 3D model */}
-            <div className="relative w-full md:flex-1" style={{ height: 'clamp(420px, 60vw, 660px)' }}>
+            <div className="relative w-full md:flex-1" style={{ height: 'clamp(360px, 55vh, 640px)' }}>
               <div className="absolute inset-0 pointer-events-none"
                    style={{ background: `radial-gradient(ellipse at center, rgba(193,92,46,0.12) 0%, transparent 65%)`,
                             filter: 'blur(30px)' }} />
@@ -729,7 +729,7 @@ export default function App() {
           MENU
       ══════════════════════════════════════════════════════════════════════ */}
       {currentView === 'menu' && (
-        <section className="container mx-auto px-4 sm:px-6 pt-[130px] md:pt-32 pb-20 min-h-screen">
+        <section className="container mx-auto px-4 sm:px-6 pt-[86px] md:pt-[100px] pb-20 min-h-screen">
           {!selectedCategory ? (
             <>
               <div className="mb-10">
@@ -934,7 +934,7 @@ export default function App() {
           EVENTS
       ══════════════════════════════════════════════════════════════════════ */}
       {currentView === 'events' && (
-        <section className="container mx-auto px-4 sm:px-6 pt-[130px] md:pt-32 pb-20 min-h-screen">
+        <section className="container mx-auto px-4 sm:px-6 pt-[86px] md:pt-[100px] pb-20 min-h-screen">
           <div className="mb-10">
             <SectionLabel t={t}>What's On</SectionLabel>
             <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 'clamp(1.8rem,6vw,2.8rem)', fontWeight: 900,
@@ -983,7 +983,7 @@ export default function App() {
           CAREERS
       ══════════════════════════════════════════════════════════════════════ */}
       {currentView === 'careers' && (
-        <section className="container mx-auto px-4 sm:px-6 pt-[130px] md:pt-32 pb-20 min-h-screen">
+        <section className="container mx-auto px-4 sm:px-6 pt-[86px] md:pt-[100px] pb-20 min-h-screen">
           <div className="mb-10">
             <SectionLabel t={t}>Join the Team</SectionLabel>
             <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 'clamp(1.8rem,6vw,2.8rem)', fontWeight: 900,
