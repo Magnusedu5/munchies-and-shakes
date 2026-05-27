@@ -510,7 +510,7 @@ export default function App() {
             </div>
 
             {/* 3D model */}
-            <div className="flex-1 w-full relative h-[260px] sm:h-[380px] md:h-[660px]">
+            <div className="flex-1 w-full relative h-[420px] sm:h-[480px] md:h-[660px]">
               <div className="absolute inset-0 pointer-events-none"
                    style={{ background: `radial-gradient(ellipse at center, rgba(193,92,46,0.12) 0%, transparent 65%)`,
                             filter: 'blur(30px)' }} />
@@ -518,7 +518,7 @@ export default function App() {
                 <Scene>
                   <RotatingGroup>
                     <FoodModel url="/models/scene_modern.glb"
-                               scale={isMobile ? 1.2 : 3}
+                               scale={isMobile ? 2.2 : 3}
                                position={isMobile ? [0, -0.4, 0] : [0, 0, 0]} />
                   </RotatingGroup>
                 </Scene>
