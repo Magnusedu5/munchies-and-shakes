@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import Scene from './Scene';
 import FoodModel from './FoodModel';
+import { useDesign } from './design/DesignContext';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || `http://${window.location.hostname}:8000`;
 const API_BASE_URL = `${BACKEND_URL}/api`;
@@ -321,6 +322,9 @@ export default function App() {
     width: '100%',
   };
 
+  // ─── Design tokens (live-editable via DesignPanel in dev mode) ───────────
+  const { design } = useDesign();
+
   // ══════════════════════════════════════════════════════════════════════════
   return (
     <div style={{ background: t.bg, color: t.text, fontFamily: "'DM Sans', sans-serif",
@@ -331,7 +335,8 @@ export default function App() {
            style={{ background: t.bgNav, borderBottom: `1px solid ${t.navBorder}`,
                     backdropFilter: 'blur(16px)' }}>
         <div className="container mx-auto px-6">
-          <nav className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[1fr_auto_1fr] items-center h-[70px]">
+          <nav className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[1fr_auto_1fr] items-center"
+               style={{ height: `${design.navbarHeight}px` }}>
 
             {/* Left — hamburger / links */}
             <div className="md:hidden">
@@ -363,7 +368,11 @@ export default function App() {
             {/* Center — Logo */}
             <div className="flex justify-center">
               <button onClick={() => navigate('home')}
-                className="flex items-center justify-center h-[52px] w-[200px] md:h-[58px] md:w-[280px]">
+                className="flex items-center justify-center"
+                style={{
+                  height: isMobile ? `${design.logoHeightMobile}px`  : `${design.logoHeightDesktop}px`,
+                  width:  isMobile ? `${design.logoWidthMobile}px`   : `${design.logoWidthDesktop}px`,
+                }}>
                 {brandAssets.header_image
                   ? <img src={getMediaUrl(brandAssets.header_image)} alt="Munchies and Shakes"
                          className="w-full h-full object-contain" />
@@ -448,14 +457,17 @@ export default function App() {
 
           {/* ── Hero ───────────────────────────────────────────────────── */}
           <section className="relative z-10 min-h-screen container mx-auto px-6
-                              flex flex-col md:flex-row items-center
-                              pt-[86px] pb-16 md:py-0 gap-12 md:gap-16">
+                              flex flex-col md:flex-row items-center pb-16 md:py-0"
+                   style={{
+                     paddingTop: `${design.heroPaddingTop}px`,
+                     gap: isMobile ? `${design.heroGapMobile}px` : `${design.heroGapDesktop}px`,
+                   }}>
             {/* Copy */}
             <div className="flex-1 w-full max-w-xl mx-auto md:mx-0 space-y-5 text-center md:text-left animate-fade-up">
               <SectionLabel t={t}>Calabar's Finest · Est. 2023</SectionLabel>
 
               <h1 style={{ fontFamily: "'Fraunces', serif", color: t.text,
-                           fontSize: 'clamp(2rem, 8vw, 4.5rem)',
+                           fontSize: `clamp(${design.heroH1SizeMinRem}rem, ${design.heroH1SizeVW}vw, ${design.heroH1SizeMaxRem}rem)`,
                            fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.01em' }}>
                 Good Food,{' '}
                 <em style={{ fontStyle: 'italic', color: t.accent }}>Honestly</em>
@@ -510,7 +522,8 @@ export default function App() {
             </div>
 
             {/* 3D model */}
-            <div className="relative w-full md:flex-1" style={{ height: 'clamp(360px, 55vh, 640px)' }}>
+            <div className="relative w-full md:flex-1"
+                 style={{ height: `clamp(${design.modelHeightMin}px, ${design.modelHeightVH}vh, ${design.modelHeightMax}px)` }}>
               <div className="absolute inset-0 pointer-events-none"
                    style={{ background: `radial-gradient(ellipse at center, rgba(193,92,46,0.12) 0%, transparent 65%)`,
                             filter: 'blur(30px)' }} />
@@ -518,8 +531,10 @@ export default function App() {
                 <Scene>
                   <RotatingGroup>
                     <FoodModel url="/models/scene_modern.glb"
-                               scale={isMobile ? 3.0 : 3}
-                               position={isMobile ? [0, -0.4, 0] : [0, 0, 0]} />
+                               scale={isMobile ? design.modelScaleMobile : design.modelScaleDesktop}
+                               position={isMobile
+                                 ? [0, design.modelPositionYMobile, 0]
+                                 : [0, design.modelPositionYDesktop, 0]} />
                   </RotatingGroup>
                 </Scene>
               </div>

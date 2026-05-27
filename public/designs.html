@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Design Concepts — Munchies &amp; Shakes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,700;0,900;1,500&family=Playfair+Display:ital,wght@0,700;0,900;1,500&family=Poppins:wght@400;700;800;900&family=Space+Grotesk:wght@400;500;700&family=Inter:wght@300;400;500;600;700&family=Bebas+Neue&family=DM+Sans:wght@400;500;700&family=Fraunces:ital,wght@0,700;0,900;1,500&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --page-bg: #0E0E0E;
+      --page-text: #888;
+    }
+
+    body {
+      background: var(--page-bg);
+      color: var(--page-text);
+      font-family: 'Inter', sans-serif;
+      padding: 60px 40px 100px;
+      min-height: 100vh;
+    }
+
+    /* ── Page header ─────────────────────────────────────────────────────── */
+    .page-header {
+      text-align: center;
+      margin-bottom: 72px;
+    }
+    .page-header .kicker {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 14px;
+    }
+    .page-header h1 {
+      font-family: 'Inter', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    .page-header p {
+      font-size: 14px;
+      color: #555;
+      max-width: 500px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── Concept wrapper ─────────────────────────────────────────────────── */
+    .concept {
+      width: 100%;
+      max-width: 1300px;
+      margin: 0 auto 64px;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid #1e1e1e;
+    }
+
+    .concept-label {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 28px;
+      background: #111;
+      border-bottom: 1px solid #1e1e1e;
+    }
+    .concept-label .num {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: #444;
+    }
+    .concept-label .title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #ccc;
+      letter-spacing: 0.05em;
+    }
+    .concept-label .desc {
+      font-size: 11px;
+      color: #444;
+      margin-left: auto;
+    }
+
+    /* ── Preview iframe-like container ──────────────────────────────────── */
+    .preview-wrap {
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       CONCEPT 1 — "NOIR GOLD"
+       Deep black · Champagne gold · Cormorant Garamond serif · Luxury dining
+    ═══════════════════════════════════════════════════════════════════════ */
+    .c1 { background: #080604; font-family: 'Inter', sans-serif; }
+
+    .c1-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 48px;
+      border-bottom: 1px solid rgba(212,175,80,0.14);
+      background: rgba(8,6,4,0.95);
+    }
+    .c1-nav-links { display: flex; gap: 28px; }
+    .c1-nav-links a { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #7a6a50; text-decoration: none; }
+    .c1-logo { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 700; color: #D4AF50; letter-spacing: 0.05em; }
+    .c1-nav-right { display: flex; gap: 20px; align-items: center; }
+    .c1-btn-sm {
+      font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600;
+      padding: 9px 20px; border: 1px solid rgba(212,175,80,0.3); color: #EDE0C0; border-radius: 6px;
+      background: transparent; cursor: pointer;
+    }
+
+    .c1-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 400px;
+    }
+    .c1-hero-left {
+      padding: 64px 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 20px;
+    }
+    .c1-kicker { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #D4AF50; }
+    .c1-headline {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 64px;
+      font-weight: 900;
+      color: #EDE0C0;
+      line-height: 1.0;
+      letter-spacing: -0.01em;
+    }
+    .c1-headline em { font-style: italic; color: #D4AF50; }
+    .c1-sub { font-size: 13px; color: #7a6a50; line-height: 1.9; max-width: 320px; }
+    .c1-ctas { display: flex; gap: 14px; margin-top: 8px; }
+    .c1-primary {
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600;
+      padding: 13px 26px; background: #C41230; color: #fff; border: none; border-radius: 6px; cursor: pointer;
+    }
+    .c1-ghost {
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600;
+      padding: 13px 26px; border: 1px solid rgba(212,175,80,0.3); color: #EDE0C0; border-radius: 6px; background: transparent; cursor: pointer;
+    }
+    .c1-stats { display: flex; gap: 32px; padding-top: 16px; border-top: 1px solid rgba(212,175,80,0.12); margin-top: 8px; }
+    .c1-stat-val { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 700; color: #EDE0C0; }
+    .c1-stat-lbl { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #7a6a50; margin-top: 2px; }
+
+    .c1-hero-right {
+      background: linear-gradient(135deg, rgba(212,175,80,0.06) 0%, transparent 60%);
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .c1-food-img {
+      font-size: 120px;
+      filter: drop-shadow(0 0 60px rgba(212,175,80,0.15));
+    }
+    .c1-glow {
+      position: absolute; width: 280px; height: 280px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(212,175,80,0.1) 0%, transparent 70%);
+    }
+
+    .c1-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: rgba(212,175,80,0.08); }
+    .c1-card { background: #0D0B08; padding: 32px; }
+    .c1-card-img { width: 100%; height: 140px; background: linear-gradient(135deg,#1a1510,#120e08); border-radius: 8px; display:flex; align-items:center; justify-content:center; font-size:50px; margin-bottom:16px; }
+    .c1-card-name { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 700; color: #EDE0C0; margin-bottom: 6px; }
+    .c1-card-desc { font-size: 11px; color: #7a6a50; line-height: 1.7; margin-bottom: 14px; }
+    .c1-card-price { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; color: #D4AF50; }
+    .c1-palette { display: flex; gap: 8px; padding: 20px 48px; border-top: 1px solid rgba(212,175,80,0.08); background: #080604; }
+    .c1-palette-chip { height: 28px; border-radius: 4px; flex: 1; position: relative; }
+    .c1-palette-chip::after { content: attr(data-label); position: absolute; bottom: -18px; left: 0; font-size: 9px; letter-spacing: 0.08em; white-space: nowrap; color: #444; }
+
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       CONCEPT 2 — "DAYBREAK"
+       Warm cream · Deep orange-red · Poppins Black · Modern fast-casual
+    ═══════════════════════════════════════════════════════════════════════ */
+    .c2 { font-family: 'Plus Jakarta Sans', sans-serif; background: #FBF8F3; }
+
+    .c2-nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 48px; background: #FBF8F3;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .c2-logo { font-family: 'Poppins', sans-serif; font-size: 17px; font-weight: 900; color: #1A1208; letter-spacing: -0.02em; }
+    .c2-logo span { color: #E8481A; }
+    .c2-nav-links { display: flex; gap: 28px; }
+    .c2-nav-links a { font-size: 12px; font-weight: 500; color: #8A7A6A; text-decoration: none; letter-spacing: 0.02em; }
+    .c2-btn-sm { font-size: 12px; font-weight: 700; padding: 10px 22px; background: #E8481A; color: #fff; border: none; border-radius: 50px; cursor: pointer; }
+
+    .c2-hero { display: grid; grid-template-columns: 1fr 1fr; min-height: 380px; }
+    .c2-hero-left { padding: 64px 48px; display: flex; flex-direction: column; justify-content: center; gap: 18px; }
+    .c2-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(232,72,26,0.1); border: 1px solid rgba(232,72,26,0.2);
+      color: #E8481A; font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      padding: 6px 14px; border-radius: 50px;
+    }
+    .c2-eyebrow-dot { width: 6px; height: 6px; background: #E8481A; border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .c2-headline { font-family: 'Poppins', sans-serif; font-size: 58px; font-weight: 900; color: #1A1208; line-height: 1.0; letter-spacing: -0.02em; }
+    .c2-headline span { color: #E8481A; }
+    .c2-sub { font-size: 14px; color: #8A7A6A; line-height: 1.8; max-width: 340px; }
+    .c2-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+    .c2-primary { font-size: 13px; font-weight: 700; padding: 14px 28px; background: #E8481A; color: #fff; border: none; border-radius: 50px; cursor: pointer; }
+    .c2-ghost { font-size: 13px; font-weight: 700; padding: 14px 28px; background: transparent; color: #1A1208; border: 2px solid rgba(0,0,0,0.12); border-radius: 50px; cursor: pointer; }
+    .c2-stats { display: flex; gap: 28px; align-items: center; }
+    .c2-stat-divider { width: 1px; height: 32px; background: rgba(0,0,0,0.1); }
+    .c2-stat-val { font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 900; color: #1A1208; }
+    .c2-stat-lbl { font-size: 11px; color: #8A7A6A; margin-top: 1px; }
+
+    .c2-hero-right {
+      background: linear-gradient(135deg, #FFF1EB 0%, #FBF8F3 100%);
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .c2-blob { position: absolute; width: 300px; height: 300px; border-radius: 50%; background: rgba(232,72,26,0.08); filter: blur(60px); }
+    .c2-food-img { font-size: 110px; position: relative; }
+
+    .c2-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; padding: 32px 48px; background: #FBF8F3; }
+    .c2-card { background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid rgba(0,0,0,0.06); }
+    .c2-card-img { width: 100%; height: 130px; background: linear-gradient(135deg,#FFF1EB,#FFE4D6); display:flex; align-items:center; justify-content:center; font-size:48px; }
+    .c2-card-body { padding: 16px; }
+    .c2-card-name { font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 700; color: #1A1208; margin-bottom: 4px; }
+    .c2-card-desc { font-size: 12px; color: #8A7A6A; line-height: 1.6; margin-bottom: 12px; }
+    .c2-card-row { display: flex; justify-content: space-between; align-items: center; }
+    .c2-card-price { font-family: 'Poppins', sans-serif; font-size: 17px; font-weight: 900; color: #E8481A; }
+    .c2-card-add { font-size: 11px; font-weight: 700; padding: 7px 14px; background: #E8481A; color: #fff; border: none; border-radius: 50px; cursor: pointer; }
+
+    .c2-palette { display: flex; gap: 8px; padding: 20px 48px; border-top: 1px solid rgba(0,0,0,0.06); background: #FBF8F3; }
+    .c2-palette-chip { height: 28px; border-radius: 4px; flex: 1; position: relative; }
+    .c2-palette-chip::after { content: attr(data-label); position: absolute; bottom: -18px; left: 0; font-size: 9px; letter-spacing: 0.08em; white-space: nowrap; color: #aaa; }
+
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       CONCEPT 3 — "NEON DISTRICT"
+       Near-black · Hot pink · Electric blue · Bebas Neue · Retro-futurist diner
+    ═══════════════════════════════════════════════════════════════════════ */
+    .c3 { background: #08090F; font-family: 'Inter', sans-serif; }
+
+    .c3-nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 48px;
+      background: rgba(8,9,15,0.95);
+      border-bottom: 1px solid rgba(255,42,109,0.2);
+    }
+    .c3-logo { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 0.08em; color: #FF2A6D; }
+    .c3-nav-links { display: flex; gap: 28px; }
+    .c3-nav-links a { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 600; color: #4A4A6A; text-decoration: none; }
+    .c3-btn-sm {
+      font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700;
+      padding: 9px 20px; background: transparent;
+      border: 1px solid #FF2A6D; color: #FF2A6D; border-radius: 4px; cursor: pointer;
+      box-shadow: 0 0 12px rgba(255,42,109,0.3), inset 0 0 12px rgba(255,42,109,0.05);
+    }
+
+    .c3-hero { display: grid; grid-template-columns: 1fr 1fr; min-height: 400px; position: relative; overflow: hidden; }
+    .c3-scanlines {
+      position: absolute; inset: 0; pointer-events: none; z-index: 1;
+      background: repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 4px);
+    }
+    .c3-hero-left { padding: 64px 48px; display: flex; flex-direction: column; justify-content: center; gap: 18px; position: relative; z-index: 2; }
+    .c3-kicker { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: #05D9E8; }
+    .c3-headline { font-family: 'Bebas Neue', sans-serif; font-size: 84px; color: #fff; line-height: 0.92; letter-spacing: 0.04em; }
+    .c3-headline .pink { color: #FF2A6D; text-shadow: 0 0 30px rgba(255,42,109,0.6); }
+    .c3-headline .blue { color: #05D9E8; text-shadow: 0 0 30px rgba(5,217,232,0.5); }
+    .c3-sub { font-size: 12px; color: #6A6A8A; line-height: 1.8; max-width: 320px; }
+    .c3-ctas { display: flex; gap: 12px; }
+    .c3-primary {
+      font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700;
+      padding: 13px 26px; background: #FF2A6D; color: #fff; border: none; border-radius: 4px; cursor: pointer;
+      box-shadow: 0 0 24px rgba(255,42,109,0.5);
+    }
+    .c3-ghost {
+      font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700;
+      padding: 13px 26px; background: transparent; border: 1px solid rgba(5,217,232,0.4); color: #05D9E8; border-radius: 4px; cursor: pointer;
+      box-shadow: 0 0 14px rgba(5,217,232,0.15), inset 0 0 14px rgba(5,217,232,0.05);
+    }
+
+    .c3-hero-right {
+      display: flex; align-items: center; justify-content: center;
+      position: relative; z-index: 2;
+      background: radial-gradient(ellipse at center, rgba(255,42,109,0.1) 0%, transparent 70%);
+    }
+    .c3-food-img { font-size: 110px; filter: drop-shadow(0 0 40px rgba(255,42,109,0.4)); }
+    .c3-grid-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background-image: linear-gradient(rgba(255,42,109,0.06) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,42,109,0.06) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    .c3-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: rgba(255,42,109,0.15); }
+    .c3-card { background: #0D0E18; padding: 28px; }
+    .c3-card-img { width: 100%; height: 120px; background: linear-gradient(135deg,#14151F,#0D0E18); border-radius: 4px; display:flex; align-items:center; justify-content:center; font-size:44px; margin-bottom:14px; border: 1px solid rgba(255,42,109,0.15); }
+    .c3-card-name { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.06em; color: #fff; margin-bottom: 4px; }
+    .c3-card-desc { font-size: 11px; color: #6A6A8A; line-height: 1.6; margin-bottom: 12px; }
+    .c3-card-row { display: flex; justify-content: space-between; align-items: center; }
+    .c3-card-price { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: #FF2A6D; letter-spacing: 0.04em; text-shadow: 0 0 16px rgba(255,42,109,0.5); }
+    .c3-card-add { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 7px 14px; background: rgba(255,42,109,0.1); border: 1px solid rgba(255,42,109,0.3); color: #FF2A6D; border-radius: 4px; cursor: pointer; }
+
+    .c3-palette { display: flex; gap: 8px; padding: 20px 48px; border-top: 1px solid rgba(255,42,109,0.15); background: #08090F; }
+    .c3-palette-chip { height: 28px; border-radius: 4px; flex: 1; position: relative; }
+    .c3-palette-chip::after { content: attr(data-label); position: absolute; bottom: -18px; left: 0; font-size: 9px; letter-spacing: 0.08em; white-space: nowrap; color: #444; }
+
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       CONCEPT 4 — "SUN & SOIL"
+       Warm ivory · Terracotta · Forest green · Fraunces serif · Artisan farm-to-table
+    ═══════════════════════════════════════════════════════════════════════ */
+    .c4 { background: #FAF6EF; font-family: 'DM Sans', sans-serif; }
+
+    .c4-nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 48px; background: #FAF6EF;
+      border-bottom: 1px solid rgba(0,0,0,0.07);
+    }
+    .c4-logo { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: #2C1810; letter-spacing: 0.02em; }
+    .c4-logo span { color: #C15C2E; }
+    .c4-nav-links { display: flex; gap: 28px; }
+    .c4-nav-links a { font-size: 13px; color: #8A7060; text-decoration: none; }
+    .c4-btn-sm { font-size: 12px; font-weight: 700; padding: 10px 20px; background: #2C1810; color: #FAF6EF; border: none; border-radius: 8px; cursor: pointer; }
+
+    .c4-hero { display: grid; grid-template-columns: 1fr 1fr; min-height: 400px; }
+    .c4-hero-left { padding: 64px 48px; display: flex; flex-direction: column; justify-content: center; gap: 20px; }
+    .c4-kicker { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; color: #C15C2E; }
+    .c4-headline { font-family: 'Fraunces', serif; font-size: 60px; font-weight: 900; color: #2C1810; line-height: 1.05; letter-spacing: -0.01em; }
+    .c4-headline em { font-style: italic; color: #C15C2E; }
+    .c4-sub { font-size: 14px; color: #8A7060; line-height: 1.85; max-width: 340px; }
+    .c4-ctas { display: flex; gap: 14px; }
+    .c4-primary { font-size: 13px; font-weight: 700; padding: 13px 26px; background: #C15C2E; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+    .c4-ghost { font-size: 13px; font-weight: 700; padding: 13px 26px; background: transparent; border: 2px solid rgba(44,24,16,0.15); color: #2C1810; border-radius: 8px; cursor: pointer; }
+    .c4-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+    .c4-tag { font-size: 11px; font-weight: 600; padding: 6px 14px; background: rgba(44,24,16,0.07); color: #2C1810; border-radius: 50px; }
+
+    .c4-hero-right {
+      background: linear-gradient(160deg, #F0E8D8 0%, #FAF6EF 100%);
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .c4-circle { position: absolute; width: 260px; height: 260px; border-radius: 50%; background: rgba(193,92,46,0.1); }
+    .c4-food-img { font-size: 110px; position: relative; }
+
+    .c4-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; padding: 32px 48px; background: #FAF6EF; }
+    .c4-card { background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid rgba(0,0,0,0.07); }
+    .c4-card-img { width: 100%; height: 130px; background: linear-gradient(135deg,#F5EBD8,#EFE0C4); display:flex; align-items:center; justify-content:center; font-size:48px; }
+    .c4-card-body { padding: 18px; }
+    .c4-card-name { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 700; color: #2C1810; margin-bottom: 5px; }
+    .c4-card-desc { font-size: 12px; color: #8A7060; line-height: 1.6; margin-bottom: 12px; }
+    .c4-card-row { display: flex; justify-content: space-between; align-items: center; }
+    .c4-card-price { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: #C15C2E; }
+    .c4-card-add { font-size: 12px; font-weight: 700; padding: 7px 14px; background: #2C1810; color: #FAF6EF; border: none; border-radius: 8px; cursor: pointer; }
+
+    .c4-palette { display: flex; gap: 8px; padding: 20px 48px; border-top: 1px solid rgba(0,0,0,0.06); background: #FAF6EF; }
+    .c4-palette-chip { height: 28px; border-radius: 4px; flex: 1; position: relative; }
+    .c4-palette-chip::after { content: attr(data-label); position: absolute; bottom: -18px; left: 0; font-size: 9px; letter-spacing: 0.08em; white-space: nowrap; color: #aaa; }
+
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       CONCEPT 5 — "BLACKOUT"
+       Pure black · Signal red · Space Grotesk · Bold graphic / street premium
+    ═══════════════════════════════════════════════════════════════════════ */
+    .c5 { background: #050505; font-family: 'Space Grotesk', sans-serif; }
+
+    .c5-nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 48px; height: 60px; background: #050505;
+      border-bottom: 1px solid #111;
+    }
+    .c5-logo { font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 700; color: #fff; letter-spacing: 0.08em; text-transform: uppercase; }
+    .c5-nav-links { display: flex; gap: 32px; }
+    .c5-nav-links a { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 600; color: #333; text-decoration: none; }
+    .c5-btn-sm { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700; padding: 9px 20px; background: #E63946; color: #fff; border: none; cursor: pointer; }
+
+    .c5-hero { display: grid; grid-template-columns: 1fr 1fr; min-height: 400px; }
+    .c5-hero-left { padding: 64px 48px; display: flex; flex-direction: column; justify-content: center; gap: 20px; border-right: 1px solid #111; }
+    .c5-num { font-family: 'Space Grotesk', sans-serif; font-size: 11px; letter-spacing: 0.2em; color: #E63946; text-transform: uppercase; }
+    .c5-headline { font-family: 'Space Grotesk', sans-serif; font-size: 68px; font-weight: 700; color: #fff; line-height: 0.95; letter-spacing: -0.03em; }
+    .c5-headline .accent { color: #E63946; }
+    .c5-sub { font-size: 13px; color: #444; line-height: 1.8; max-width: 320px; }
+    .c5-ctas { display: flex; gap: 0; }
+    .c5-primary { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700; padding: 14px 28px; background: #E63946; color: #fff; border: none; cursor: pointer; }
+    .c5-ghost { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700; padding: 14px 28px; background: transparent; border: 1px solid #222; color: #fff; cursor: pointer; }
+    .c5-marquee-row { display: flex; gap: 20px; overflow: hidden; }
+    .c5-marquee-item { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: #222; white-space: nowrap; }
+    .c5-marquee-item.hi { color: #E63946; }
+
+    .c5-hero-right { display: flex; align-items: center; justify-content: center; background: #0A0A0A; position: relative; overflow: hidden; }
+    .c5-food-img { font-size: 110px; position: relative; z-index: 1; }
+    .c5-big-r { position: absolute; font-family: 'Space Grotesk', sans-serif; font-size: 320px; font-weight: 700; color: #fff; opacity: 0.03; line-height: 1; pointer-events: none; bottom: -40px; right: -20px; }
+
+    .c5-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; border-top: 1px solid #111; }
+    .c5-card { padding: 28px; border-right: 1px solid #111; }
+    .c5-card:last-child { border-right: none; }
+    .c5-card-img { width: 100%; height: 120px; background: #0E0E0E; display:flex; align-items:center; justify-content:center; font-size:44px; margin-bottom:16px; border: 1px solid #111; }
+    .c5-card-num { font-size: 10px; letter-spacing: 0.2em; color: #E63946; text-transform: uppercase; margin-bottom: 6px; }
+    .c5-card-name { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 5px; letter-spacing: -0.02em; }
+    .c5-card-desc { font-size: 11px; color: #333; line-height: 1.6; margin-bottom: 14px; }
+    .c5-card-row { display: flex; justify-content: space-between; align-items: center; }
+    .c5-card-price { font-size: 18px; font-weight: 700; color: #fff; }
+    .c5-card-add { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; padding: 8px 14px; background: #E63946; color: #fff; border: none; cursor: pointer; }
+
+    .c5-palette { display: flex; gap: 8px; padding: 20px 48px; border-top: 1px solid #111; background: #050505; }
+    .c5-palette-chip { height: 28px; flex: 1; position: relative; }
+    .c5-palette-chip::after { content: attr(data-label); position: absolute; bottom: -18px; left: 0; font-size: 9px; letter-spacing: 0.08em; white-space: nowrap; color: #333; }
+
+    /* ── Footer ──────────────────────────────────────────────────────────── */
+    .page-footer {
+      text-align: center;
+      margin-top: 100px;
+      padding: 40px;
+      border-top: 1px solid #1a1a1a;
+    }
+    .page-footer p { font-size: 13px; color: #333; line-height: 1.8; }
+    .page-footer strong { color: #888; }
+    .concept-number {
+      display: inline-block;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 1px solid #2a2a2a;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 32px;
+      text-align: center;
+      margin: 0 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Page header ──────────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <p class="kicker">Munchies &amp; Shakes · Frontend Redesign</p>
+    <h1>5 Design Concepts</h1>
+    <p>Review each concept below, then tell Claude which number you prefer — or describe what you want to mix and match.</p>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       CONCEPT 1 — NOIR GOLD
+  ════════════════════════════════════════════════════════════════════════ -->
+  <div class="concept">
+    <div class="concept-label">
+      <span class="num">01</span>
+      <span class="title">Noir Gold</span>
+      <span class="desc">Luxury dining · Cormorant Garamond · Deep black &amp; champagne gold</span>
+    </div>
+    <div class="preview-wrap c1">
+      <!-- Nav -->
+      <div class="c1-nav">
+        <div class="c1-nav-links">
+          <a href="#">Home</a><a href="#">Menu</a><a href="#">Events</a><a href="#">Careers</a>
+        </div>
+        <div class="c1-logo">Munchies &amp; Shakes</div>
+        <div class="c1-nav-right">
+          <button class="c1-btn-sm">Order Now</button>
+        </div>
+      </div>
+      <!-- Hero -->
+      <div class="c1-hero">
+        <div class="c1-hero-left">
+          <p class="c1-kicker">Calabar's Finest · Est. 2023</p>
+          <h1 class="c1-headline">Bold<br/>Flavours,<br/><em>Crafted</em><br/>with Care.</h1>
+          <p class="c1-sub">Smash burgers, loaded fries, and thick handcrafted shakes — made with the finest local ingredients.</p>
+          <div class="c1-ctas">
+            <button class="c1-primary">Explore the Menu</button>
+            <button class="c1-ghost">Track My Order</button>
+          </div>
+          <div class="c1-stats">
+            <div><div class="c1-stat-val">500+</div><div class="c1-stat-lbl">Daily Orders</div></div>
+            <div><div class="c1-stat-val">4.9</div><div class="c1-stat-lbl">Star Rating</div></div>
+            <div><div class="c1-stat-val">30 min</div><div class="c1-stat-lbl">Avg. Delivery</div></div>
+          </div>
+        </div>
+        <div class="c1-hero-right">
+          <div class="c1-glow"></div>
+          <div class="c1-food-img">🍔</div>
+        </div>
+      </div>
+      <!-- Cards -->
+      <div class="c1-cards">
+        <div class="c1-card"><div class="c1-card-img">🍔</div><div class="c1-card-name">Smash Burger</div><div class="c1-card-desc">Double smash patty, special sauce, crispy onions, brioche bun.</div><div class="c1-card-price">₦7,500</div></div>
+        <div class="c1-card"><div class="c1-card-img">🍟</div><div class="c1-card-name">Loaded Fries</div><div class="c1-card-desc">Crispy fries with cheese sauce, jalapeños, and crispy bacon.</div><div class="c1-card-price">₦4,200</div></div>
+        <div class="c1-card"><div class="c1-card-img">🥤</div><div class="c1-card-name">Signature Shake</div><div class="c1-card-desc">House-blended with premium ice cream and natural flavours.</div><div class="c1-card-price">₦3,800</div></div>
+      </div>
+      <!-- Palette -->
+      <div class="c1-palette" style="padding-bottom: 36px;">
+        <div class="c1-palette-chip" style="background:#080604;" data-label="#080604 Black"></div>
+        <div class="c1-palette-chip" style="background:#D4AF50;" data-label="#D4AF50 Gold"></div>
+        <div class="c1-palette-chip" style="background:#C41230;" data-label="#C41230 Crimson"></div>
+        <div class="c1-palette-chip" style="background:#EDE0C0;" data-label="#EDE0C0 Cream"></div>
+        <div class="c1-palette-chip" style="background:#7a6a50;" data-label="#7A6A50 Muted"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       CONCEPT 2 — DAYBREAK
+  ════════════════════════════════════════════════════════════════════════ -->
+  <div class="concept">
+    <div class="concept-label">
+      <span class="num">02</span>
+      <span class="title">Daybreak</span>
+      <span class="desc">Modern fast-casual · Plus Jakarta Sans · Warm cream &amp; bold orange</span>
+    </div>
+    <div class="preview-wrap c2">
+      <!-- Nav -->
+      <div class="c2-nav">
+        <div class="c2-logo">Munchies<span>&amp;</span>Shakes</div>
+        <div class="c2-nav-links">
+          <a href="#">Home</a><a href="#">Menu</a><a href="#">Events</a><a href="#">Careers</a>
+        </div>
+        <button class="c2-btn-sm">Order Now</button>
+      </div>
+      <!-- Hero -->
+      <div class="c2-hero">
+        <div class="c2-hero-left">
+          <div class="c2-eyebrow"><span class="c2-eyebrow-dot"></span> Now Delivering in Calabar</div>
+          <h1 class="c2-headline">Eat Bold.<br/><span>Live Loud.</span></h1>
+          <p class="c2-sub">Handcrafted smash burgers, crispy loaded fries, and thick shakes blended to perfection — delivered in under 30 minutes.</p>
+          <div class="c2-ctas">
+            <button class="c2-primary">Explore Menu</button>
+            <button class="c2-ghost">Track Order</button>
+          </div>
+          <div class="c2-stats">
+            <div><div class="c2-stat-val">500+</div><div class="c2-stat-lbl">Daily orders</div></div>
+            <div class="c2-stat-divider"></div>
+            <div><div class="c2-stat-val">4.9★</div><div class="c2-stat-lbl">Rating</div></div>
+            <div class="c2-stat-divider"></div>
+            <div><div class="c2-stat-val">30m</div><div class="c2-stat-lbl">Delivery</div></div>
+          </div>
+        </div>
+        <div class="c2-hero-right">
+          <div class="c2-blob"></div>
+          <div class="c2-food-img">🍔</div>
+        </div>
+      </div>
+      <!-- Cards -->
+      <div class="c2-cards">
+        <div class="c2-card"><div class="c2-card-img">🍔</div><div class="c2-card-body"><div class="c2-card-name">Smash Burger</div><div class="c2-card-desc">Double smash patty, special sauce, crispy onions, brioche bun.</div><div class="c2-card-row"><span class="c2-card-price">₦7,500</span><button class="c2-card-add">Add +</button></div></div></div>
+        <div class="c2-card"><div class="c2-card-img">🍟</div><div class="c2-card-body"><div class="c2-card-name">Loaded Fries</div><div class="c2-card-desc">Crispy fries with cheese sauce, jalapeños, and crispy bacon.</div><div class="c2-card-row"><span class="c2-card-price">₦4,200</span><button class="c2-card-add">Add +</button></div></div></div>
+        <div class="c2-card"><div class="c2-card-img">🥤</div><div class="c2-card-body"><div class="c2-card-name">Signature Shake</div><div class="c2-card-desc">House-blended with premium ice cream and natural flavours.</div><div class="c2-card-row"><span class="c2-card-price">₦3,800</span><button class="c2-card-add">Add +</button></div></div></div>
+      </div>
+      <!-- Palette -->
+      <div class="c2-palette" style="padding-bottom: 36px;">
+        <div class="c2-palette-chip" style="background:#FBF8F3;" data-label="#FBF8F3 Cream"></div>
+        <div class="c2-palette-chip" style="background:#E8481A;" data-label="#E8481A Orange"></div>
+        <div class="c2-palette-chip" style="background:#1A1208;" data-label="#1A1208 Espresso"></div>
+        <div class="c2-palette-chip" style="background:#fff; border:1px solid #eee;" data-label="#FFFFFF White"></div>
+        <div class="c2-palette-chip" style="background:#8A7A6A;" data-label="#8A7A6A Warm grey"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       CONCEPT 3 — NEON DISTRICT
+  ════════════════════════════════════════════════════════════════════════ -->
+  <div class="concept">
+    <div class="concept-label">
+      <span class="num">03</span>
+      <span class="title">Neon District</span>
+      <span class="desc">Retro-futurist diner · Bebas Neue · Deep black, hot pink &amp; electric blue</span>
+    </div>
+    <div class="preview-wrap c3">
+      <!-- Nav -->
+      <div class="c3-nav">
+        <div class="c3-nav-links">
+          <a href="#">Home</a><a href="#">Menu</a><a href="#">Events</a><a href="#">Careers</a>
+        </div>
+        <div class="c3-logo">Munchies &amp; Shakes</div>
+        <button class="c3-btn-sm">Order Now</button>
+      </div>
+      <!-- Hero -->
+      <div class="c3-hero">
+        <div class="c3-scanlines"></div>
+        <div class="c3-hero-left">
+          <p class="c3-kicker">// Now Serving Calabar</p>
+          <h1 class="c3-headline"><span class="pink">Eat</span><br/><span class="blue">Different.</span><br/>Live Bold.</h1>
+          <p class="c3-sub">Smash burgers, crispy fries and handcrafted shakes — engineered to blow your mind, delivered in under 30 minutes.</p>
+          <div class="c3-ctas">
+            <button class="c3-primary">Order Now</button>
+            <button class="c3-ghost">Track Order</button>
+          </div>
+        </div>
+        <div class="c3-hero-right">
+          <div class="c3-grid-bg"></div>
+          <div class="c3-food-img">🍔</div>
+        </div>
+      </div>
+      <!-- Cards -->
+      <div class="c3-cards">
+        <div class="c3-card"><div class="c3-card-img">🍔</div><div class="c3-card-name">Smash Burger</div><div class="c3-card-desc">Double smash patty, special sauce, crispy onions, brioche bun.</div><div class="c3-card-row"><span class="c3-card-price">₦7,500</span><button class="c3-card-add">Add to Order</button></div></div>
+        <div class="c3-card"><div class="c3-card-img">🍟</div><div class="c3-card-name">Loaded Fries</div><div class="c3-card-desc">Crispy fries with cheese sauce, jalapeños, and crispy bacon.</div><div class="c3-card-row"><span class="c3-card-price">₦4,200</span><button class="c3-card-add">Add to Order</button></div></div>
+        <div class="c3-card"><div class="c3-card-img">🥤</div><div class="c3-card-name">Signature Shake</div><div class="c3-card-desc">House-blended with premium ice cream and natural flavours.</div><div class="c3-card-row"><span class="c3-card-price">₦3,800</span><button class="c3-card-add">Add to Order</button></div></div>
+      </div>
+      <!-- Palette -->
+      <div class="c3-palette" style="padding-bottom: 36px;">
+        <div class="c3-palette-chip" style="background:#08090F;" data-label="#08090F Black"></div>
+        <div class="c3-palette-chip" style="background:#FF2A6D; box-shadow:0 0 10px rgba(255,42,109,0.5);" data-label="#FF2A6D Hot pink"></div>
+        <div class="c3-palette-chip" style="background:#05D9E8; box-shadow:0 0 10px rgba(5,217,232,0.5);" data-label="#05D9E8 Cyan"></div>
+        <div class="c3-palette-chip" style="background:#D1F7FF;" data-label="#D1F7FF Ice white"></div>
+        <div class="c3-palette-chip" style="background:#4A4A6A;" data-label="#4A4A6A Indigo grey"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       CONCEPT 4 — SUN & SOIL
+  ════════════════════════════════════════════════════════════════════════ -->
+  <div class="concept">
+    <div class="concept-label">
+      <span class="num">04</span>
+      <span class="title">Sun &amp; Soil</span>
+      <span class="desc">Artisan farm-to-table · Fraunces serif · Warm ivory &amp; terracotta</span>
+    </div>
+    <div class="preview-wrap c4">
+      <!-- Nav -->
+      <div class="c4-nav">
+        <div class="c4-logo">Munchies <span>&amp;</span> Shakes</div>
+        <div class="c4-nav-links">
+          <a href="#">Home</a><a href="#">Menu</a><a href="#">Events</a><a href="#">Careers</a>
+        </div>
+        <button class="c4-btn-sm">Order Now</button>
+      </div>
+      <!-- Hero -->
+      <div class="c4-hero">
+        <div class="c4-hero-left">
+          <p class="c4-kicker">Calabar's Finest</p>
+          <h1 class="c4-headline">Good Food,<br/><em>Honestly</em><br/>Made.</h1>
+          <p class="c4-sub">Smash burgers crafted from locally-sourced ingredients, loaded fries, and shakes blended fresh every morning. No shortcuts.</p>
+          <div class="c4-ctas">
+            <button class="c4-primary">See the Menu</button>
+            <button class="c4-ghost">Track My Order</button>
+          </div>
+          <div class="c4-tags">
+            <span class="c4-tag">🌿 Fresh Daily</span>
+            <span class="c4-tag">🔥 Made to Order</span>
+            <span class="c4-tag">⚡ 30-Min Delivery</span>
+          </div>
+        </div>
+        <div class="c4-hero-right">
+          <div class="c4-circle"></div>
+          <div class="c4-food-img">🍔</div>
+        </div>
+      </div>
+      <!-- Cards -->
+      <div class="c4-cards">
+        <div class="c4-card"><div class="c4-card-img">🍔</div><div class="c4-card-body"><div class="c4-card-name">Smash Burger</div><div class="c4-card-desc">Double smash patty, special sauce, crispy onions, brioche bun.</div><div class="c4-card-row"><span class="c4-card-price">₦7,500</span><button class="c4-card-add">Add to Order</button></div></div></div>
+        <div class="c4-card"><div class="c4-card-img">🍟</div><div class="c4-card-body"><div class="c4-card-name">Loaded Fries</div><div class="c4-card-desc">Crispy fries with cheese sauce, jalapeños, and crispy bacon.</div><div class="c4-card-row"><span class="c4-card-price">₦4,200</span><button class="c4-card-add">Add to Order</button></div></div></div>
+        <div class="c4-card"><div class="c4-card-img">🥤</div><div class="c4-card-body"><div class="c4-card-name">Signature Shake</div><div class="c4-card-desc">House-blended with premium ice cream and natural flavours.</div><div class="c4-card-row"><span class="c4-card-price">₦3,800</span><button class="c4-card-add">Add to Order</button></div></div></div>
+      </div>
+      <!-- Palette -->
+      <div class="c4-palette" style="padding-bottom: 36px;">
+        <div class="c4-palette-chip" style="background:#FAF6EF; border:1px solid #e0d8cc;" data-label="#FAF6EF Ivory"></div>
+        <div class="c4-palette-chip" style="background:#C15C2E;" data-label="#C15C2E Terracotta"></div>
+        <div class="c4-palette-chip" style="background:#2C1810;" data-label="#2C1810 Dark Brown"></div>
+        <div class="c4-palette-chip" style="background:#F0E8D8;" data-label="#F0E8D8 Sand"></div>
+        <div class="c4-palette-chip" style="background:#8A7060;" data-label="#8A7060 Warm grey"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       CONCEPT 5 — BLACKOUT
+  ════════════════════════════════════════════════════════════════════════ -->
+  <div class="concept">
+    <div class="concept-label">
+      <span class="num">05</span>
+      <span class="title">Blackout</span>
+      <span class="desc">Street premium · Space Grotesk · Pure black &amp; signal red — bold graphic design</span>
+    </div>
+    <div class="preview-wrap c5">
+      <!-- Nav -->
+      <div class="c5-nav">
+        <div class="c5-logo">M&amp;S</div>
+        <div class="c5-nav-links">
+          <a href="#">Home</a><a href="#">Menu</a><a href="#">Events</a><a href="#">Careers</a>
+        </div>
+        <button class="c5-btn-sm">Order Now</button>
+      </div>
+      <!-- Hero -->
+      <div class="c5-hero">
+        <div class="c5-hero-left">
+          <p class="c5-num">// 001 — Hero</p>
+          <h1 class="c5-headline">No<br/>Compro<span class="accent">-<br/>mise.</span></h1>
+          <p class="c5-sub">Smash burgers, loaded fries, and thick shakes built for people who don't settle. Crafted fresh. Delivered fast.</p>
+          <div class="c5-ctas">
+            <button class="c5-primary">Order Now</button>
+            <button class="c5-ghost">View Menu</button>
+          </div>
+          <div class="c5-marquee-row">
+            <span class="c5-marquee-item">500+ Daily Orders</span>
+            <span class="c5-marquee-item hi">✦</span>
+            <span class="c5-marquee-item">4.9 Stars</span>
+            <span class="c5-marquee-item hi">✦</span>
+            <span class="c5-marquee-item">30-min Delivery</span>
+            <span class="c5-marquee-item hi">✦</span>
+            <span class="c5-marquee-item">Calabar, Nigeria</span>
+          </div>
+        </div>
+        <div class="c5-hero-right">
+          <div class="c5-big-r">M</div>
+          <div class="c5-food-img">🍔</div>
+        </div>
+      </div>
+      <!-- Cards -->
+      <div class="c5-cards">
+        <div class="c5-card"><div class="c5-card-img">🍔</div><div class="c5-card-num">// 001</div><div class="c5-card-name">Smash Burger</div><div class="c5-card-desc">Double smash patty, special sauce, crispy onions, brioche bun.</div><div class="c5-card-row"><span class="c5-card-price">₦7,500</span><button class="c5-card-add">Add to Order</button></div></div>
+        <div class="c5-card"><div class="c5-card-img">🍟</div><div class="c5-card-num">// 002</div><div class="c5-card-name">Loaded Fries</div><div class="c5-card-desc">Crispy fries with cheese sauce, jalapeños, and crispy bacon.</div><div class="c5-card-row"><span class="c5-card-price">₦4,200</span><button class="c5-card-add">Add to Order</button></div></div>
+        <div class="c5-card"><div class="c5-card-img">🥤</div><div class="c5-card-num">// 003</div><div class="c5-card-name">Signature Shake</div><div class="c5-card-desc">House-blended with premium ice cream and natural flavours.</div><div class="c5-card-row"><span class="c5-card-price">₦3,800</span><button class="c5-card-add">Add to Order</button></div></div>
+      </div>
+      <!-- Palette -->
+      <div class="c5-palette" style="padding-bottom: 36px;">
+        <div class="c5-palette-chip" style="background:#050505;" data-label="#050505 Black"></div>
+        <div class="c5-palette-chip" style="background:#E63946;" data-label="#E63946 Signal Red"></div>
+        <div class="c5-palette-chip" style="background:#ffffff;" data-label="#FFFFFF White"></div>
+        <div class="c5-palette-chip" style="background:#111;" data-label="#111111 Dark card"></div>
+        <div class="c5-palette-chip" style="background:#333;" data-label="#333333 Mid grey"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── Page footer ──────────────────────────────────────────────────────── -->
+  <div class="page-footer">
+    <p>
+      Pick a number — <strong>1, 2, 3, 4, or 5</strong> — and tell Claude.<br/>
+      You can also mix concepts: e.g. <em>"I like the layout of 2 with the colours of 1"</em> or <em>"5 but warmer"</em>.
+    </p>
+  </div>
+
+</body>
+</html>

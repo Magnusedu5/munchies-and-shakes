@@ -1,0 +1,20 @@
+{
+  "navbarHeight": 70,
+  "logoHeightMobile": 52,
+  "logoWidthMobile": 200,
+  "logoHeightDesktop": 58,
+  "logoWidthDesktop": 280,
+  "heroPaddingTop": 86,
+  "heroGapMobile": 48,
+  "heroGapDesktop": 64,
+  "modelHeightMin": 360,
+  "modelHeightVH": 55,
+  "modelHeightMax": 640,
+  "modelScaleMobile": 3.0,
+  "modelScaleDesktop": 3.0,
+  "modelPositionYMobile": -0.4,
+  "modelPositionYDesktop": 0.0,
+  "heroH1SizeMinRem": 2.0,
+  "heroH1SizeVW": 8,
+  "heroH1SizeMaxRem": 4.5
+}
