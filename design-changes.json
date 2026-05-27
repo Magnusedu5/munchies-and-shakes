@@ -1,9 +1,9 @@
 {
-  "navbarHeight": 70,
-  "logoHeightMobile": 60,
-  "logoWidthMobile": 200,
+  "navbarHeight": 85,
+  "logoHeightMobile": 70,
+  "logoWidthMobile": 233,
   "logoHeightDesktop": 100,
-  "logoWidthDesktop": 298,
+  "logoWidthDesktop": 384,
   "heroPaddingTop": 86,
   "heroGapMobile": 48,
   "heroGapDesktop": 64,

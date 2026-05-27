@@ -5,15 +5,15 @@ import { createContext, useContext, useState } from 'react'
 // from the current look with zero visual change.
 export const DESIGN_DEFAULTS = {
   // Navbar
-  navbarHeight:       70,    // px
+  navbarHeight:       85,    // px
 
   // Logo — mobile
-  logoHeightMobile:   60,    // px
-  logoWidthMobile:    200,   // px
+  logoHeightMobile:   70,    // px
+  logoWidthMobile:    233,   // px
 
   // Logo — desktop (md+)
   logoHeightDesktop:  100,   // px
-  logoWidthDesktop:   298,   // px
+  logoWidthDesktop:   384,   // px
 
   // Hero layout
   heroPaddingTop:     86,    // px — top padding on mobile (below fixed nav)
