@@ -449,7 +449,7 @@ export default function App() {
           {/* ── Hero ───────────────────────────────────────────────────── */}
           <section className="relative z-10 min-h-[100svh] container mx-auto px-4 sm:px-6
                               flex flex-col md:flex-row items-center
-                              pt-20 pb-12 md:pt-0 gap-8 md:gap-8">
+                              pt-[130px] pb-12 md:pt-0 gap-8 md:gap-16">
             {/* Copy */}
             <div className="flex-1 w-full space-y-5 text-center md:text-left animate-fade-up">
               <SectionLabel t={t}>Calabar's Finest · Est. 2023</SectionLabel>
@@ -510,7 +510,7 @@ export default function App() {
             </div>
 
             {/* 3D model */}
-            <div className="shrink-0 w-full relative" style={{ height: 'clamp(420px, 60vw, 660px)' }}>
+            <div className="relative w-full md:flex-1" style={{ height: 'clamp(420px, 60vw, 660px)' }}>
               <div className="absolute inset-0 pointer-events-none"
                    style={{ background: `radial-gradient(ellipse at center, rgba(193,92,46,0.12) 0%, transparent 65%)`,
                             filter: 'blur(30px)' }} />
@@ -729,7 +729,7 @@ export default function App() {
           MENU
       ══════════════════════════════════════════════════════════════════════ */}
       {currentView === 'menu' && (
-        <section className="container mx-auto px-4 sm:px-6 pt-24 md:pt-32 pb-20 min-h-screen">
+        <section className="container mx-auto px-4 sm:px-6 pt-[130px] md:pt-32 pb-20 min-h-screen">
           {!selectedCategory ? (
             <>
               <div className="mb-10">
@@ -934,7 +934,7 @@ export default function App() {
           EVENTS
       ══════════════════════════════════════════════════════════════════════ */}
       {currentView === 'events' && (
-        <section className="container mx-auto px-4 sm:px-6 pt-24 md:pt-32 pb-20 min-h-screen">
+        <section className="container mx-auto px-4 sm:px-6 pt-[130px] md:pt-32 pb-20 min-h-screen">
           <div className="mb-10">
             <SectionLabel t={t}>What's On</SectionLabel>
             <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 'clamp(1.8rem,6vw,2.8rem)', fontWeight: 900,
@@ -983,7 +983,7 @@ export default function App() {
           CAREERS
       ══════════════════════════════════════════════════════════════════════ */}
       {currentView === 'careers' && (
-        <section className="container mx-auto px-4 sm:px-6 pt-24 md:pt-32 pb-20 min-h-screen">
+        <section className="container mx-auto px-4 sm:px-6 pt-[130px] md:pt-32 pb-20 min-h-screen">
           <div className="mb-10">
             <SectionLabel t={t}>Join the Team</SectionLabel>
             <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 'clamp(1.8rem,6vw,2.8rem)', fontWeight: 900,
