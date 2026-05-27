@@ -5,18 +5,18 @@ import { createContext, useContext, useState } from 'react'
 // from the current look with zero visual change.
 export const DESIGN_DEFAULTS = {
   // Navbar
-  navbarHeight:       85,    // px
+  navbarHeight:       110,   // px
 
   // Logo — mobile
   logoHeightMobile:   87,    // px
   logoWidthMobile:    282,   // px
 
   // Logo — desktop (md+)
-  logoHeightDesktop:  100,   // px
-  logoWidthDesktop:   400,   // px
+  logoHeightDesktop:  130,   // px
+  logoWidthDesktop:   520,   // px
 
   // Hero layout
-  heroPaddingTop:     86,    // px — top padding on mobile (below fixed nav)
+  heroPaddingTop:     110,   // px — top padding on mobile (below fixed nav)
   heroGapMobile:      48,    // px — gap between copy and 3D column on mobile (gap-12)
   heroGapDesktop:     64,    // px — gap on desktop (gap-16)
 
