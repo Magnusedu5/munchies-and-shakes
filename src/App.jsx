@@ -449,7 +449,7 @@ export default function App() {
               <video ref={videoRef} src={getMediaUrl(brandAssets.background_video)}
                      autoPlay loop muted playsInline
                      className="w-full h-full object-cover"
-                     style={{ opacity: 0.12 }} />
+                     style={{ opacity: 0.28 }} />
               <div className="absolute inset-0"
                    style={{ background: `${t.bg}cc` }} />
             </div>
