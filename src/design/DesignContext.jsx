@@ -12,8 +12,8 @@ export const DESIGN_DEFAULTS = {
   logoWidthMobile:    282,   // px
 
   // Logo — desktop (md+)
-  logoHeightDesktop:  293,   // px
-  logoWidthDesktop:   1170,  // px
+  logoHeightDesktop:  293,   // px  (195 × 1.5)
+  logoWidthDesktop:   780,   // px  (kept — wider caused overflow)
 
   // Hero layout
   heroPaddingTop:     248,   // px — top padding on mobile (below fixed nav)
