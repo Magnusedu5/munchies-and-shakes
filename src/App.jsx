@@ -477,8 +477,9 @@ export default function App() {
               <p style={{ color: t.textMuted, fontSize: '15px', lineHeight: 1.85,
                           maxWidth: '390px', margin: '0 auto' }}
                  className="md:mx-0">
-                Smash burgers crafted from locally-sourced ingredients, loaded fries,
-                and thick shakes blended fresh every single day. No shortcuts, ever.
+                Locally-sourced smash burgers, loaded fries, and thick shakes blended
+                fresh every single day in Calabar. No heat lamps, no shortcuts —
+                nothing less than extraordinary.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
