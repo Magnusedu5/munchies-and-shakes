@@ -8,11 +8,11 @@ export const DESIGN_DEFAULTS = {
   navbarHeight:       70,    // px
 
   // Logo — mobile
-  logoHeightMobile:   52,    // px
+  logoHeightMobile:   60,    // px
   logoWidthMobile:    200,   // px
 
   // Logo — desktop (md+)
-  logoHeightDesktop:  58,    // px
+  logoHeightDesktop:  70,    // px
   logoWidthDesktop:   280,   // px
 
   // Hero layout
@@ -21,9 +21,9 @@ export const DESIGN_DEFAULTS = {
   heroGapDesktop:     64,    // px — gap on desktop (gap-16)
 
   // 3D model container height
-  modelHeightMin:     360,   // px (clamp min)
-  modelHeightVH:      55,    // vh (clamp middle)
-  modelHeightMax:     582,   // px (clamp max)
+  modelHeightMin:     250,   // px (clamp min)
+  modelHeightVH:      78,    // vh (clamp middle)
+  modelHeightMax:     639,   // px (clamp max)
 
   // 3D model scale
   modelScaleMobile:   3.0,
