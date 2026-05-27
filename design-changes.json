@@ -9,12 +9,12 @@
   "heroGapDesktop": 64,
   "modelHeightMin": 360,
   "modelHeightVH": 55,
-  "modelHeightMax": 640,
-  "modelScaleMobile": 3.0,
-  "modelScaleDesktop": 3.0,
+  "modelHeightMax": 582,
+  "modelScaleMobile": 3,
+  "modelScaleDesktop": 3,
   "modelPositionYMobile": -0.4,
-  "modelPositionYDesktop": 0.0,
-  "heroH1SizeMinRem": 2.0,
+  "modelPositionYDesktop": 0,
+  "heroH1SizeMinRem": 2,
   "heroH1SizeVW": 8,
   "heroH1SizeMaxRem": 4.5
 }

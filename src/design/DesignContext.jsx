@@ -23,7 +23,7 @@ export const DESIGN_DEFAULTS = {
   // 3D model container height
   modelHeightMin:     360,   // px (clamp min)
   modelHeightVH:      55,    // vh (clamp middle)
-  modelHeightMax:     640,   // px (clamp max)
+  modelHeightMax:     582,   // px (clamp max)
 
   // 3D model scale
   modelScaleMobile:   3.0,
