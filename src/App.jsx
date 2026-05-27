@@ -331,7 +331,7 @@ export default function App() {
            style={{ background: t.bgNav, borderBottom: `1px solid ${t.navBorder}`,
                     backdropFilter: 'blur(16px)' }}>
         <div className="container mx-auto px-6">
-          <nav className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[1fr_auto_1fr] items-center h-[80px] md:h-[62px]">
+          <nav className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[1fr_auto_1fr] items-center h-[116px] md:h-[62px]">
 
             {/* Left — hamburger / links */}
             <div className="md:hidden">
@@ -363,7 +363,7 @@ export default function App() {
             {/* Center — Logo */}
             <div className="flex justify-center">
               <button onClick={() => navigate('home')}
-                className="flex items-center justify-center h-[76px] w-72 md:h-14 md:w-60">
+                className="flex items-center justify-center h-[110px] w-full md:h-14 md:w-60">
                 {brandAssets.header_image
                   ? <img src={getMediaUrl(brandAssets.header_image)} alt="Munchies and Shakes"
                          className="w-full h-full object-contain" />

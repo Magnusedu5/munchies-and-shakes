@@ -30,13 +30,14 @@ function CanvasLoader() {
 }
 
 export default function Scene({ children }) {
-  const [dpr, setDpr] = useState(window.devicePixelRatio > 2 ? 1 : 1.5)
+  const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+  const [dpr, setDpr] = useState(isMobileDevice ? 1 : (window.devicePixelRatio > 2 ? 1 : 1.5))
 
   return (
     <Canvas
       dpr={dpr}
       style={{ width: '100%', height: '100%' }}
-      gl={{ antialias: false, powerPreference: 'high-performance' }}
+      gl={{ antialias: false, powerPreference: 'default', failIfMajorPerformanceCaveat: false }}
     >
       <PerformanceMonitor onIncline={() => setDpr(2)} onDecline={() => setDpr(1)} />
 
