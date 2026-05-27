@@ -8,8 +8,8 @@ export const DESIGN_DEFAULTS = {
   navbarHeight:       85,    // px
 
   // Logo — mobile
-  logoHeightMobile:   70,    // px
-  logoWidthMobile:    233,   // px
+  logoHeightMobile:   87,    // px
+  logoWidthMobile:    282,   // px
 
   // Logo — desktop (md+)
   logoHeightDesktop:  100,   // px
