@@ -363,7 +363,7 @@ export default function App() {
             {/* Center — Logo */}
             <div className="flex justify-center">
               <button onClick={() => navigate('home')}
-                className="flex items-center justify-center h-10 w-40 md:h-12 md:w-52">
+                className="flex items-center justify-center h-12 w-52 md:h-14 md:w-60">
                 {brandAssets.header_image
                   ? <img src={getMediaUrl(brandAssets.header_image)} alt="Munchies and Shakes"
                          className="w-full h-full object-contain" />
